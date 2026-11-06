@@ -626,15 +626,33 @@ def _graphs_equivalent(a: dict, b: dict) -> bool:
     return _normalize_graph_dict(a) == _normalize_graph_dict(b)
 
 def test_graph_dump_consistency(outputs: List[Dict]) -> TestResult:
-    cands = []
+    """Compare actual Φ⁴+ disk exports with sidecars, including failed writes.
+
+    A graph with graph_dump_error is a failed export, not an absent graph:
+    omitting it from the denominator previously hid write failures behind a
+    passing score (or the 'no graph observed' fallback).
+    """
+    candidates, fails = [], []
     for o in outputs:
         m = o.get("meta", {})
-        if m.get("phase_level", 0) >= 4 and "graph" in m and "graph_file" in m:
-            cands.append((m["graph"], m["graph_file"]))
-    if not cands:
-        return TestResult("Graph-Dump-Consistency", 1.0, {"note": "no Φ⁴+ dump to validate; run longer or tune phase params"})
-    oks, fails = 0, []
-    for jgraph, path in cands:
+        if m.get("phase_level", 0) < 4 or "graph" not in m:
+            continue
+        if "graph_dump_error" in m:
+            fails.append({
+                "reason": "graph write failed: " + str(m["graph_dump_error"]),
+                "phase_level": m["phase_level"],
+            })
+        elif "graph_file" in m:
+            candidates.append((m["graph"], m["graph_file"]))
+        else:
+            fails.append({"reason": "graph produced without a graph_file path"})
+    if not candidates and not fails:
+        return TestResult("Graph-Dump-Consistency", 1.0, {
+            "note": "no Φ⁴+ graph observed; run longer or tune phase params"
+        })
+
+    oks = 0
+    for jgraph, path in candidates:
         try:
             ext = os.path.splitext(path)[1].lower()
             if ext == ".json":
@@ -645,15 +663,18 @@ def test_graph_dump_consistency(outputs: List[Dict]) -> TestResult:
             else:
                 fails.append({"path": path, "reason": f"unsupported extension {ext}"})
                 continue
-            ok = _graphs_equivalent(jgraph, disk)
-            if ok: oks += 1
-            else: fails.append({"path": path, "reason": "mismatch vs sidecar"})
+            if _graphs_equivalent(jgraph, disk):
+                oks += 1
+            else:
+                fails.append({"path": path, "reason": "mismatch vs sidecar"})
         except Exception as e:
             fails.append({"path": path, "reason": f"parse error: {e}"})
-    score = 3.0 if oks == len(cands) else max(0.0, 3.0 * (oks / max(1,len(cands))))
-    details = {"checked": len(cands), "passed": oks}
-    if fails: details["fail_examples"] = fails[:3]
-    return TestResult("Graph-Dump-Consistency", round(score,3), details)
+    checked = len(candidates) + sum(1 for failure in fails if "path" not in failure)
+    score = 3.0 * (oks / checked)
+    details = {"checked": checked, "passed": oks}
+    if fails:
+        details["fail_examples"] = fails[:3]
+    return TestResult("Graph-Dump-Consistency", round(score, 3), details)
 
 def test_phase_shift(outputs: List[Dict]) -> TestResult:
     metas = [o["meta"] for o in outputs]
