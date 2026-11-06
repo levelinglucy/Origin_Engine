@@ -2,7 +2,7 @@
 
 ## Unreleased — high-phase integration and honest export metrics (2026-11-06)
 
-**Status:** implemented on development branch for proposed `v0.1.1`; validation pending CI, not released.
+**Status:** included in [PR #4](https://github.com/levelinglucy/Origin_Engine/pull/4) for proposed `v0.1.1`. Tested candidate; not a tagged stable release.
 
 ### Fixed
 - Graph-Dump-Consistency now counts Φ⁴+ graphs whose disk export raised an error or lacked a file path as failed checks. Previously those graphs were omitted, allowing misleading passing scores or a no-graph default after failed writes.
@@ -11,7 +11,7 @@
 - Added integration checks running the real six-operator engine through phase transitions to Φ⁴ using a test-only threshold, then verifying three actual graph emissions per format, distinct paths, JSON/GraphML round trips and non-vacuous consistency scores.
 - Added a simulated disk failure test proving the sidecar is retained, the dump error is reported and the failure contributes to the score denominator.
 
-**Reason:** helper-level serialization tests cannot prove the engine's normal high-phase pipeline emits correct sidecars, and omitting failed dumps from metrics hides data loss. **Validation:** pending candidate CI; actual device/Pythonista execution and crash-atomic writes remain unverified.
+**Reason:** helper-level serialization tests cannot prove the engine's normal high-phase pipeline emits correct sidecars, and omitting failed dumps from metrics hides data loss. **Validation:** 12/12 tests passed on each Python 3.11 and 3.12 at [PR CI run 42202352772](https://github.com/levelinglucy/Origin_Engine/actions/runs/42202352772), including all three new integration tests. Actual device/Pythonista execution and crash-atomic writes remain unverified.
 
 [Engineering rationale](./DEV_NOTES.md#decision-2026-11-06-count-failed-graph-exports) · [Roadmap](./ROADMAP.md)
 
