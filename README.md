@@ -2,10 +2,10 @@
 
 ## Development summary
 
-**Status:** proposed `v0.1.1` integrated candidate; optional seeded replay is a separate development slice awaiting CI and review, not yet stable.
+**Status:** proposed `v0.1.1` integrated candidate; optional seeded replay is a separate tested PR candidate, not yet merged, not yet stable.
 **Current goal:** make reproducible research runs possible without changing normal OS-backed randomness.
-**Latest development (2026-11-06):** an isolated per-engine integer seed option now feeds P/U/C/Ψ; added checks for clean-process replay, independent streams and graph round trips. Verification pending on this branch.
-**Next:** (1) verify PR CI and source readback; (2) review replay limitations before integration; (3) separately seek trusted Pythonista/device evidence before stable promotion.
+**Latest development (2026-11-06):** an isolated per-engine integer seed option now feeds P/U/C/Ψ; added checks for clean-process replay, independent streams and graph round trips. **17/17 tests passed on Python 3.11 and 3.12** in [PR CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42210406967); target-device checks remain absent.
+**Next:** (1) verify exact final PR and merged-main checks; (2) keep replay limitations clear; (3) separately seek trusted Pythonista/device evidence before stable promotion.
 
 [Changelog](./CHANGELOG.md) · [Developer notes and decisions](./DEV_NOTES.md) · [Milestones](./ROADMAP.md)
 
