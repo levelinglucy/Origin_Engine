@@ -24,7 +24,7 @@ THE SOFTWARE.
 """
 
 # Active entrypoint: optional --seed adds per-engine reproducible experiments;
-# normal OS-backed entropy is unchanged. Next: verify CI and device behaviour.
+# normal OS-backed entropy is unchanged. CI passed; next: trusted device checks.
 # See DEV_NOTES.md, CHANGELOG.md; historical monolith is preserved.
 
 # ================================================================
