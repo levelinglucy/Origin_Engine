@@ -2,10 +2,10 @@
 
 ## Development summary
 
-**Current stage:** proposed `v0.1.1` integrated candidate; seeded replay changes are in development pending CI, not tagged stable.
+**Current stage:** proposed `v0.1.1` integrated candidate; seeded replay is a tested PR candidate, pending merge, not tagged stable.
 **Current goal:** optional deterministic replay through a private per-engine stream without changing default OS entropy.
-**Latest development (2026-11-06):** optional `--seed`/constructor seed passes a private generator through P/U/C/Ψ, with clean-process, interleaving and graph-output regression checks. Validation is pending.
-**Next:** verify CI and review diff before merging, document replay limits, and keep device/stable-release evidence separate.
+**Latest development (2026-11-06):** optional `--seed`/constructor seed passes a private generator through P/U/C/Ψ, with clean-process, interleaving and graph-output regression checks. **17/17 tests passed on each Python 3.11 and 3.12** in [PR CI 42210406967](https://github.com/levelinglucy/Origin_Engine/actions/runs/42210406967).
+**Next:** verify exact final PR checks and merge after diff review, document replay limits, and keep device/stable-release evidence separate.
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
 
@@ -19,7 +19,7 @@
 
 **Trade-offs:** seeded draws are predictable and must never be used for cryptographic secrets. Repeatability depends on matching source revision, Python/random implementation, parameters and call order. Timestamped file paths and collision suffixes are intentionally not deterministic; graph content and metadata excluding file paths can be compared. A future source refactor may change draw order; durable cross-version replay would need a versioned PRNG and manifest contract. No globals are patched or seeded.
 
-**Acceptance:** equal seeds reproduce output in independent subprocesses; different seeds diverge; interleaved engines are independent; unseeded mode still requests OS entropy; seeded Φ⁴ JSON/GraphML sidecars round-trip under normalized paths. Tests are added but CI evidence is pending. Pythonista/device execution remains untested.
+**Acceptance:** equal seeds reproduce output in independent subprocesses; different seeds diverge; interleaved engines are independent; unseeded mode still requests OS entropy; seeded Φ⁴ JSON/GraphML sidecars round-trip under normalized paths. 17/17 checks passed in PR CI on both Python 3.11 and 3.12; these results do not prove target-device support. Pythonista/device execution remains untested.
 
 **Revisit:** if durable archival replay is required, define an explicit stream version, PRNG and canonical serialization protocol before making a cross-version guarantee.
 
