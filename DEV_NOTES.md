@@ -4,7 +4,7 @@
 
 **Current stage:** proposed `v0.1.1` integrated candidate; graph-integrity repair is in a separate review branch. Not tagged stable.  
 **Current goal:** no graph export may silently replace an earlier result; JSON and GraphML must round-trip their node labels and edges.  
-**Latest development:** exclusive filenames, safe XML serialization, regression tests reproducing the historical defects; **CI verification pending**. Historical source remains unchanged.  
+**Latest development:** exclusive filenames, safe XML serialization, regression tests reproducing the historical defects; **PR CI verified: 9/9 tests passed on each of Python 3.11 and 3.12**. Historical source remains unchanged.  
 **Next:** verify the exact candidate on Python 3.11/3.12; confirm merge/readback; then consider target-device validation and optional seeded replay.
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
@@ -29,7 +29,7 @@ The monolith uses `os.urandom` and `random.SystemRandom` for stochastic operator
 
 ## Continuation
 
-1. Verify the new graph-export regression suite in GitHub Actions on the exact candidate revision and confirm merged source readback.
+1. PR regression suite passed in GitHub Actions ([run 42194305730](https://github.com/levelinglucy/Origin_Engine/actions/runs/42194305730)); confirm the final candidate's checks, merge and source readback.
 2. Assess target-device/Pythonista execution, graph export paths and stable release criteria on trusted data; keep release status explicit.
 3. Separately prototype opt-in seeded replay without changing the default entropy source; establish reproducibility checks first.
 
@@ -45,6 +45,6 @@ The monolith uses `os.urandom` and `random.SystemRandom` for stochastic operator
 
 **Trade-offs:** new files are created instead of silently replacing old ones, so storage use grows with emitted graphs; a bounded 10,000-name suffix search raises if an implausibly crowded identity/second namespace is exhausted. The first filename remains compatible, and the parser accepts the XML namespace representation. A process terminated during a file write could leave an incomplete output; completed writes and normal errors are handled, but crash-atomic durable output is not claimed. Do not use untrusted file contents as instructions.
 
-**Verification target:** tests reproduce both defects on the untouched historical source and assert lossless output on the new engine under a frozen clock. Exercise JSON and XML with Unicode and XML-special characters, check distinct paths and reuse the existing consistency scorecard. Only claim these checks passed after observed CI.
+**Verification target:** tests reproduce both defects on the untouched historical source and assert lossless output on the new engine under a frozen clock. Exercise JSON and XML with Unicode and XML-special characters, check distinct paths and reuse the existing consistency scorecard. Nine tests passed on each of Python 3.11 and 3.12 in [PR CI run 42194305730](https://github.com/levelinglucy/Origin_Engine/actions/runs/42194305730), including the historical failure reproductions. This is not target-device validation.
 
 **Revisit:** if crash-atomic delivery or very high concurrent throughput becomes a requirement, investigate temporary-file staging plus non-replacing atomic publication on supported filesystems. Do not add that complexity without an observed need.

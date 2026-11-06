@@ -13,7 +13,7 @@
 - Pinned the historical source by its original Git blob digest, letting the actively maintained entrypoint evolve while preserving provenance.
 - Updated project overview, developer decisions, release roadmap and continuation guidance.
 
-**Reason:** silent loss of an earlier graph is a data-integrity defect; malformed XML defeats the advertised export format. **Validation:** regression suite added; PR and merged-main checks not yet observed for this candidate.
+**Reason:** silent loss of an earlier graph is a data-integrity defect; malformed XML defeats the advertised export format. **Validation:** nine tests passed on Python 3.11 and 3.12 in [graph-integrity PR CI run 42194305730](https://github.com/levelinglucy/Origin_Engine/actions/runs/42194305730). Merged-main checks and formal stable promotion remain pending.
 
 [Engineering rationale](./DEV_NOTES.md#decision-2026-11-06-prevent-graph-overwrite-and-invalid-xml) · [Release gates](./ROADMAP.md)
 
