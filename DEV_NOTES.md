@@ -2,10 +2,10 @@
 
 ## Development summary
 
-**Current stage:** proposed `v0.1.1` integrated candidate; graph-integrity repair is in a separate review branch. Not tagged stable.  
+**Current stage:** proposed `v0.1.1` integrated candidate; graph-integrity repair merged in [PR #2](https://github.com/levelinglucy/Origin_Engine/pull/2). Not tagged stable.  
 **Current goal:** no graph export may silently replace an earlier result; JSON and GraphML must round-trip their node labels and edges.  
-**Latest development:** exclusive filenames, safe XML serialization, regression tests reproducing the historical defects; **PR CI verified: 9/9 tests passed on each of Python 3.11 and 3.12**. Historical source remains unchanged.  
-**Next:** verify the exact candidate on Python 3.11/3.12; confirm merge/readback; then consider target-device validation and optional seeded replay.
+**Latest development:** exclusive filenames, safe XML serialization, regression tests reproducing the historical defects; **PR and merged-main CI verified: 9/9 tests passed on each of Python 3.11 and 3.12**. Historical source remains unchanged.  
+**Next:** evaluate trusted target-device recovery/graph writing, explore opt-in seeded replay separately, and reassess release criteria.
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
 
@@ -29,7 +29,7 @@ The monolith uses `os.urandom` and `random.SystemRandom` for stochastic operator
 
 ## Continuation
 
-1. PR regression suite passed in GitHub Actions ([run 42194305730](https://github.com/levelinglucy/Origin_Engine/actions/runs/42194305730)); confirm the final candidate's checks, merge and source readback.
+1. Graph-integrity [PR #2](https://github.com/levelinglucy/Origin_Engine/pull/2) merged at [`0b263516`](https://github.com/levelinglucy/Origin_Engine/commit/0b263516ff2fa5e87ebfcae5730b2bb0092a2ca6); [final PR CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42194431084) and [merged-main CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42194484337) passed on Python 3.11/3.12, and source readback was confirmed.
 2. Assess target-device/Pythonista execution, graph export paths and stable release criteria on trusted data; keep release status explicit.
 3. Separately prototype opt-in seeded replay without changing the default entropy source; establish reproducibility checks first.
 

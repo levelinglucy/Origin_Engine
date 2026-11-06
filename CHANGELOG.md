@@ -2,7 +2,7 @@
 
 ## Unreleased — graph export integrity candidate (2026-11-06)
 
-**Status:** changes proposed for review; `v0.1.1` has not been tagged or promoted to stable.
+**Status:** merged into main via [PR #2](https://github.com/levelinglucy/Origin_Engine/pull/2) at [`0b263516`](https://github.com/levelinglucy/Origin_Engine/commit/0b263516ff2fa5e87ebfcae5730b2bb0092a2ca6); `v0.1.1` remains an untagged candidate, not stable.
 
 ### Fixed
 - Graph exports with identical phase, identity prefix and UTC second no longer truncate previous emissions. Each new export uses exclusive creation and a deterministic collision suffix.
@@ -13,7 +13,7 @@
 - Pinned the historical source by its original Git blob digest, letting the actively maintained entrypoint evolve while preserving provenance.
 - Updated project overview, developer decisions, release roadmap and continuation guidance.
 
-**Reason:** silent loss of an earlier graph is a data-integrity defect; malformed XML defeats the advertised export format. **Validation:** nine tests passed on Python 3.11 and 3.12 in [graph-integrity PR CI run 42194305730](https://github.com/levelinglucy/Origin_Engine/actions/runs/42194305730). Merged-main checks and formal stable promotion remain pending.
+**Reason:** silent loss of an earlier graph is a data-integrity defect; malformed XML defeats the advertised export format. **Validation:** nine checks passed on Python 3.11 and 3.12 in [final PR CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42194431084) and [merged-main CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42194484337). Target-device testing and formal stable promotion remain unverified.
 
 [Engineering rationale](./DEV_NOTES.md#decision-2026-11-06-prevent-graph-overwrite-and-invalid-xml) · [Release gates](./ROADMAP.md)
 
@@ -32,7 +32,7 @@
 
 ### Why / checks
 - Reason: the original repository could not execute the filename shown in its README because that name was absent. The copied file preserves provenance without performing a risky source rewrite.
-- Required acceptance: tests pass on the candidate commit in CI, canonical Git blob equals historical blob and README launch path works. The initial entrypoint candidate passed all four checks on Python 3.11 and 3.12 in PR and merged-main GitHub Actions on 2026-11-06; see PR #1. Additional graph integrity coverage belongs to the later candidate above.
+- Required acceptance: tests pass on the candidate commit in CI, canonical Git blob equalled the historical blob at PR #1 and the README launch path worked. The initial entrypoint candidate passed all four checks on Python 3.11 and 3.12 in PR and merged-main GitHub Actions on 2026-11-06; see PR #1. Additional graph integrity coverage belongs to the later candidate above.
 - Not covered: reproducibility, advanced graph export, iPhone/Pythonista runtime and scientific claims.
 
 [Decision and trade-offs](./DEV_NOTES.md) · [Release gate](./ROADMAP.md)
