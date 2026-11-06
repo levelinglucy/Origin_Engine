@@ -2,10 +2,10 @@
 
 ## Development summary
 
-**Current stage:** proposed `v0.1.1` integrated candidate; high-phase integration checks and missing-export reporting change staged for CI, not tagged stable.
+**Current stage:** proposed `v0.1.1` integrated candidate; high-phase integration and missing-export accounting tested in [PR #4](https://github.com/levelinglucy/Origin_Engine/pull/4). Not tagged stable.
 **Current goal:** prove the actual Φ⁴+ engine path produces faithful JSON/GraphML files and counts failures rather than treating them as absent graphs.
-**Latest development:** real engine-cycle integration tests accelerate phase thresholds only in test instances; scoring now counts failed graph writes. Prior export-collision and XML fixes remain merged. **Candidate CI pending.**
-**Next:** verify candidate CI, pursue optional seeded replay on a separate milestone, and reassess release with trusted Pythonista/device evidence.
+**Latest development:** real engine-cycle integration tests accelerate phase thresholds only in test instances; scoring now counts failed graph writes. Prior export-collision and XML fixes remain merged. **PR CI: 12/12 passed on Python 3.11 and 3.12.**
+**Next:** verify merged-main checks, pursue optional seeded replay separately, and reassess release with trusted Pythonista/device evidence.
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
 
@@ -60,6 +60,6 @@ The monolith uses `os.urandom` and `random.SystemRandom` for stochastic operator
 
 **Trade-offs:** the numerical score may decrease for runs that previously hid failed exports. This is intentional and more informative, but old scorecards should not be compared without accounting for the changed denominator. Runtime still permits a glyph emission even if its graph file fails; clients requiring guaranteed durable graphs must explicitly check `graph_dump_error`/`graph_file` and consider crash-atomic designs separately. Random graph connectivity is a distinct quality metric: integration checks verify faithful serialization, not that all stochastic graphs are connected.
 
-**Acceptance checks:** a real end-to-end evolution per format yields three distinct, parseable files matching the in-memory sidecars; the consistency report says checked=3/passed=3; a simulated disk failure reports checked=1/passed=0/score=0. **Validation pending CI.** Device/Pythonista execution and interrupted-write crash durability remain untested.
+**Acceptance checks:** a real end-to-end evolution per format yields three distinct, parseable files matching the in-memory sidecars; the consistency report says checked=3/passed=3; a simulated disk failure reports checked=1/passed=0/score=0. **Validation:** 12/12 tests passed on each Python 3.11 and 3.12 in [PR CI 42202352772](https://github.com/levelinglucy/Origin_Engine/actions/runs/42202352772). Device/Pythonista execution and interrupted-write crash durability remain untested.
 
 **Revisit:** require fail-fast or atomic handoff if consumers come to depend on guaranteed durable graph delivery; revise metric definitions only with explicit versioned compatibility notes.
