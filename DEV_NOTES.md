@@ -2,12 +2,26 @@
 
 ## Development summary
 
-**Current stage:** proposed `v0.1.1` integrated candidate; high-phase integration and missing-export accounting tested in [PR #4](https://github.com/levelinglucy/Origin_Engine/pull/4). Not tagged stable.
-**Current goal:** prove the actual Φ⁴+ engine path produces faithful JSON/GraphML files and counts failures rather than treating them as absent graphs.
-**Latest development:** real engine-cycle integration tests accelerate phase thresholds only in test instances; scoring now counts failed graph writes. Prior export-collision and XML fixes remain merged. **PR CI: 12/12 passed on Python 3.11 and 3.12.**
-**Next:** verify merged-main checks, pursue optional seeded replay separately, and reassess release with trusted Pythonista/device evidence.
+**Current stage:** proposed `v0.1.1` integrated candidate; seeded replay changes are in development pending CI, not tagged stable.
+**Current goal:** optional deterministic replay through a private per-engine stream without changing default OS entropy.
+**Latest development (2026-11-06):** optional `--seed`/constructor seed passes a private generator through P/U/C/Ψ, with clean-process, interleaving and graph-output regression checks. Validation is pending.
+**Next:** verify CI and review diff before merging, document replay limits, and keep device/stable-release evidence separate.
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
+
+## Decision 2026-11-06: opt-in per-engine seeded replay
+
+**Problem:** the canonical engine uses `os.urandom` for P/C and global `SystemRandom` for U/Ψ. `random.seed` cannot replay these OS-backed sources. Experimental comparisons therefore depended on irreproducible draws.
+
+**Alternatives:** patch global entropy functions temporarily; replace module-level global RNG; or inject a private pseudorandom stream into the operators. Global replacement risks affecting unrelated engines and default randomness during interleaved runs.
+
+**Choice:** `OriginEngine(seed=integer)` owns a single `random.Random` instance. P/C byte draws use its `getrandbits(8)`, U/Ψ use its numeric methods. `seed=None` still uses `os.urandom` and `SystemRandom` in the same operators as before. Existing positional operator calls remain compatible with optional keyword-only `rng`. The CLI exposes `--seed INTEGER`, defaulting to no seed. The historical monolith is unchanged.
+
+**Trade-offs:** seeded draws are predictable and must never be used for cryptographic secrets. Repeatability depends on matching source revision, Python/random implementation, parameters and call order. Timestamped file paths and collision suffixes are intentionally not deterministic; graph content and metadata excluding file paths can be compared. A future source refactor may change draw order; durable cross-version replay would need a versioned PRNG and manifest contract. No globals are patched or seeded.
+
+**Acceptance:** equal seeds reproduce output in independent subprocesses; different seeds diverge; interleaved engines are independent; unseeded mode still requests OS entropy; seeded Φ⁴ JSON/GraphML sidecars round-trip under normalized paths. Tests are added but CI evidence is pending. Pythonista/device execution remains untested.
+
+**Revisit:** if durable archival replay is required, define an explicit stream version, PRNG and canonical serialization protocol before making a cross-version guarantee.
 
 ## Historical source and current behaviour
 
