@@ -259,31 +259,65 @@ def psi_sandbox(s: str) -> str:
     return "".join(out)
 
 def _dump_graph_file(graph_obj: dict, phase_level: int, ident: str, fmt: str) -> str:
+    """Create a graph export without replacing another emission.
+
+    Construct and validate the text before claiming a filename. Exclusive
+    creation guards even simultaneous writers; the legacy filename is kept
+    for the first emission, followed by _0001, _0002, ... when necessary.
+    See DEV_NOTES.md for the collision and GraphML escaping decisions.
+    """
+    if fmt == "json":
+        payload = json.dumps(graph_obj, ensure_ascii=False, indent=2)
+    elif fmt == "graphml":
+        # ElementTree handles Unicode/XML escaping and the GraphML key
+        # declaration. Hand-assembled XML corrupted labels containing & or <.
+        namespace = "http://graphml.graphdrawing.org/xmlns"
+        root = ET.Element("graphml", {"xmlns": namespace})
+        ET.SubElement(root, "key", {
+            "id": "label", "for": "node", "attr.name": "label", "attr.type": "string"
+        })
+        graph = ET.SubElement(root, "graph", {
+            "id": f"OE_Phase{phase_level}", "edgedefault": "undirected"
+        })
+        for node in graph_obj.get("nodes", []):
+            element = ET.SubElement(graph, "node", {"id": f'n{node["id"]}'})
+            ET.SubElement(element, "data", {"key": "label"}).text = str(node.get("label", ""))
+        for edge in graph_obj.get("edges", []):
+            ET.SubElement(graph, "edge", {
+                "source": f'n{edge["source"]}', "target": f'n{edge["target"]}'
+            })
+        payload = '<?xml version="1.0" encoding="UTF-8"?>\n'
+        payload += ET.tostring(root, encoding="unicode") + "\n"
+    else:
+        raise ValueError(f"Unsupported graph format: {fmt}")
+
     ts = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
     ident_short = ident[:8]
     outdir = os.path.join(os.getcwd(), "oe_graphs")
     os.makedirs(outdir, exist_ok=True)
-    fname = f"OE_graph_phase{phase_level}_{ident_short}_{ts}.{fmt}"
-    fpath = os.path.join(outdir, fname)
+    stem = f"OE_graph_phase{phase_level}_{ident_short}_{ts}"
 
-    if fmt == "json":
-        with open(fpath, "w", encoding="utf-8") as f:
-            json.dump(graph_obj, f, ensure_ascii=False, indent=2)
-    elif fmt == "graphml":
-        with open(fpath, "w", encoding="utf-8") as f:
-            f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
-            f.write('<graphml xmlns="http://graphml.graphdrawing.org/xmlns">\n')
-            f.write(f'  <graph id="OE_Phase{phase_level}" edgedefault="undirected">\n')
-            for node in graph_obj.get("nodes", []):
-                f.write(f'    <node id="n{node["id"]}">\n')
-                f.write(f'      <data key="label">{node.get("label","")}</data>\n')
-                f.write(f'    </node>\n')
-            for edge in graph_obj.get("edges", []):
-                f.write(f'    <edge source="n{edge["source"]}" target="n{edge["target"]}"/>\n')
-            f.write("  </graph>\n</graphml>\n")
-    else:
-        raise ValueError(f"Unsupported graph format: {fmt}")
-    return fpath
+    for serial in range(10000):
+        suffix = "" if serial == 0 else f"_{serial:04d}"
+        fpath = os.path.join(outdir, f"{stem}{suffix}.{fmt}")
+        try:
+            # Mode x uses exclusive creation: no check-then-open race and no
+            # truncation of files from earlier runs (even from other processes).
+            output = open(fpath, "x", encoding="utf-8", newline="\n")
+        except FileExistsError:
+            continue
+        try:
+            with output:
+                output.write(payload)
+        except BaseException:
+            # Remove only our newly-created, incomplete file on write failure.
+            try:
+                os.unlink(fpath)
+            except OSError:
+                pass
+            raise
+        return fpath
+    raise FileExistsError("No free filename for Origin Engine graph export")
 
 def Ψ(iota: Iota, history: List[str], phase: Phase, d_min: float=0.35) -> Construct:
     alphabet = _alphabet_for(iota, phase.level)
