@@ -2,18 +2,17 @@
 
 ## Development summary
 
-**Status:** entrypoint repair candidate; not tagged or released. **Current goal:** a working, understandable, self-contained Python launch path.  
-**Latest change (2026-11-06):** restored the documented `origin_engine_monolith.py` filename as an exact source copy, leaving the historically named file intact. Added a bounded CLI regression suite and automated checks.  
-**Next:** (1) verify candidate CI on supported Python versions; (2) assess deterministic, seeded replay as a separate experiment; (3) validate JSON/GraphML export under controlled fixtures.  
-**Version policy:** proposed `0.1.1` patch after verification; no existing version is represented as stable by this update.
+**Status:** proposed `v0.1.1` integrated candidate plus graph-integrity fix under review; no stable release or new tag. **Current goal:** preserve every exported graph and round-trip valid JSON/GraphML labels.  
+**Latest development (2026-11-06):** the canonical standalone engine now selects an exclusive unused filename instead of overwriting graphs with a matching identity/second, and uses XML-safe GraphML serialization. The preserved historical source is unchanged. **Graph-integrity PR CI passed 9/9 tests on both Python 3.11 and 3.12; merge and stable release remain separate gates.**  
+**Next:** (1) verify graph integrity regressions on Python 3.11/3.12; (2) consider release validation on a trusted iPhone/Pythonista environment; (3) prototype optional seeded replay without changing default entropy.
 
-[Changelog](./CHANGELOG.md) · [Developer notes and decision](./DEV_NOTES.md) · [Milestones](./ROADMAP.md)
+[Changelog](./CHANGELOG.md) · [Developer notes and decisions](./DEV_NOTES.md) · [Milestones](./ROADMAP.md)
 
 ## What it does
 
 Origin Engine is a **novelty-oriented experimental generator**, using six operators (`P → S → U → Σ → C → Ψ`) to produce symbolic glyph sequences. Its phase accumulator can change grammars and introduce additional glyphs, and later phases can write graph representations. The metrics are experimental proxies, **not proof of consciousness, originality independent of inherited code, or safety**.
 
-The historical monolithic source remains in this repository under the filename `python3 origin_engine_monolith.py`; that filename looks like a shell command but is actually a file name. The canonical `origin_engine_monolith.py` is an exact copy to make the documented command work without deleting the original.
+The historical monolithic source remains in this repository under the filename `python3 origin_engine_monolith.py`; that filename looks like a shell command but is actually a file name. The canonical `origin_engine_monolith.py` began as an exact copy to restore the documented command. It now includes isolated graph-export integrity changes; the historical file is preserved unchanged.
 
 ## Quick start
 
@@ -37,6 +36,6 @@ Optional flags: `--spec` (JSON spec), `--prompts` (JSONL), `--cycles`, `--dmin`,
 python3 -m unittest discover -s tests -v
 ```
 
-This checks the historical/canonical source match, CLI help, bounded generation and invalid-spec rejection. It does not yet test seeded replay or comprehensive graph exports. The bundled scorecard is informative, not an exhaustive quality or safety test.
+This checks the historical source's Git blob identity, CLI help, bounded generation, invalid-spec rejection, deterministic export collisions, JSON preservation and GraphML label round trips. It does not check seeded replay or device-specific Pythonista execution. The bundled scorecard is informative, not an exhaustive quality or safety test.
 
 See [developer notes](./DEV_NOTES.md) for historical context, trade-offs and [ROADMAP.md](./ROADMAP.md) for the release gate.

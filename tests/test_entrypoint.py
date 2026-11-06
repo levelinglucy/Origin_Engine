@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import subprocess
 import sys
 import tempfile
@@ -24,7 +25,14 @@ class EntrypointChecks(unittest.TestCase):
     def test_historical_source_is_unchanged(self):
         self.assertTrue(ENTRY.is_file())
         self.assertTrue(ARCHIVE.is_file())
-        self.assertEqual(ENTRY.read_bytes(), ARCHIVE.read_bytes())
+        # Git's blob digest pins the untouched predecessor. The actively
+        # maintained entrypoint is now allowed to evolve independently.
+        data = ARCHIVE.read_bytes()
+        object_bytes = f"blob {len(data)}\0".encode("ascii") + data
+        self.assertEqual(
+            hashlib.sha1(object_bytes).hexdigest(),
+            "8f59d6cf147be28403f8fe00d686f1904d989561",
+        )
 
     def test_help_runs(self):
         with tempfile.TemporaryDirectory() as d:
