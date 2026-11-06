@@ -23,6 +23,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
+# Active entrypoint: optional --seed adds per-engine reproducible experiments;
+# normal OS-backed entropy is unchanged. Next: verify CI and device behaviour.
+# See DEV_NOTES.md, CHANGELOG.md; historical monolith is preserved.
+
 # ================================================================
 # Built-in Defaults for Self-Contained Mode
 # ================================================================
@@ -50,7 +54,9 @@ from typing import List, Dict, Tuple, Iterable, Optional
 
 _rng = random.SystemRandom()
 
-def randbytes(n=16): return os.urandom(n)
+def randbytes(n=16, rng=None):
+    # No seed: retain historical OS entropy; seeded engines use a private PRNG.
+    return os.urandom(n) if rng is None else bytes(rng.getrandbits(8) for _ in range(n))
 def hashhex(b: bytes) -> str: return hashlib.sha256(b).hexdigest()
 
 def levenshtein(a: str, b: str) -> int:
@@ -182,16 +188,17 @@ def c_guard(choice_first_byte: int) -> bool:
 # ================================================================
 # Operators {P,S,U,Σ,C,Ψ}
 # ================================================================
-def P(z: Z0, anchors: Anchors) -> Bottom:
-    return Bottom(reason=f"{anchors.paradox_token}:{hashhex(randbytes(8))[:8]}")
+def P(z: Z0, anchors: Anchors, *, rng=None) -> Bottom:
+    return Bottom(reason=f"{anchors.paradox_token}:{hashhex(randbytes(8, rng=rng))[:8]}")
 
 def S(bot: Bottom) -> Phi:
     seed = int(hashhex(bot.reason.encode())[:8], 16)
     energy = (seed % 23) + 7
     return Phi(potential_energy=energy, seed=seed)
 
-def U(phi: Phi) -> Box:
-    jitter = (_rng.randint(0, 2**16-1) ^ phi.seed) & 0xFFFF
+def U(phi: Phi, *, rng=None) -> Box:
+    active_rng = _rng if rng is None else rng
+    jitter = (active_rng.randint(0, 2**16-1) ^ phi.seed) & 0xFFFF
     pid = hashhex((str(phi.seed)+str(jitter)).encode())[:12]
     return Box(presence_id=pid, jitter=jitter)
 
@@ -201,8 +208,8 @@ def Σ(box: Box) -> Iota:
     ident, orbit, mark = h[:16], int(h[16:20],16)%97, h[20:28]
     return Iota(ident=ident, orbit=orbit, entropy_mark=mark)
 
-def C(iota: Iota) -> Iota:
-    choice = randbytes(16)
+def C(iota: Iota, *, rng=None) -> Iota:
+    choice = randbytes(16, rng=rng)
     if not c_guard(choice[0]): return iota
     bump = int(hashhex(choice)[:4],16) % 7
     new_orbit = (iota.orbit + bump) % 97
@@ -319,14 +326,15 @@ def _dump_graph_file(graph_obj: dict, phase_level: int, ident: str, fmt: str) ->
         return fpath
     raise FileExistsError("No free filename for Origin Engine graph export")
 
-def Ψ(iota: Iota, history: List[str], phase: Phase, d_min: float=0.35) -> Construct:
+def Ψ(iota: Iota, history: List[str], phase: Phase, d_min: float=0.35, *, rng=None) -> Construct:
+    active_rng = _rng if rng is None else rng
     alphabet = _alphabet_for(iota, phase.level)
 
     def gen_token(length_range=(4, 10)):
-        L = _rng.randint(*length_range)
+        L = active_rng.randint(*length_range)
         s, last = [], None
         for _ in range(L):
-            ch = alphabet[_rng.randint(0, len(alphabet)-1)]
+            ch = alphabet[active_rng.randint(0, len(alphabet)-1)]
             if ch == last:
                 ch = alphabet[(alphabet.index(ch)+1) % len(alphabet)]
             s.append(ch); last = ch
@@ -334,7 +342,7 @@ def Ψ(iota: Iota, history: List[str], phase: Phase, d_min: float=0.35) -> Const
 
     # ---- Phase Grammars ----
     def grammar_phase0():
-        return " ".join(gen_token() for _ in range(_rng.randint(3,6)))
+        return " ".join(gen_token() for _ in range(active_rng.randint(3,6)))
 
     def grammar_phase1():
         base = gen_token()
@@ -357,7 +365,7 @@ def Ψ(iota: Iota, history: List[str], phase: Phase, d_min: float=0.35) -> Const
         edges = []
         for i in range(len(nodes)):
             for j in range(i+1, len(nodes)):
-                if _rng.random() < 0.5:
+                if active_rng.random() < 0.5:
                     edges.append((nodes[i], nodes[j]))
         graph_json = {
             "nodes": [{"id": idx, "label": n} for idx, n in enumerate(nodes)],
@@ -426,8 +434,10 @@ def Ψ(iota: Iota, history: List[str], phase: Phase, d_min: float=0.35) -> Const
 # Engine wrapper
 # ================================================================
 class OriginEngine:
-    def __init__(self, kernel: Kernel|None=None, d_min: float=0.35):
+    def __init__(self, kernel: Kernel|None=None, d_min: float=0.35, seed: int|None=None):
         self.kernel = kernel or Kernel()
+        # Seed is opt-in: None preserves the legacy SystemRandom/os.urandom path.
+        self._seed_rng = random.Random(seed) if seed is not None else None
         self.history: List[str] = []
         self.iota: Optional[Iota] = None
         self.d_min = d_min
@@ -435,11 +445,11 @@ class OriginEngine:
 
     def cycle(self) -> Construct:
         z = Z0()
-        bot = P(z, self.kernel.A)
+        bot = P(z, self.kernel.A, rng=self._seed_rng)
         phi = S(bot)
-        box = U(phi)
-        self.iota = Σ(box) if self.iota is None else C(self.iota)
-        out = Ψ(self.iota, self.history, self.phase, d_min=self.d_min)
+        box = U(phi, rng=self._seed_rng)
+        self.iota = Σ(box) if self.iota is None else C(self.iota, rng=self._seed_rng)
+        out = Ψ(self.iota, self.history, self.phase, d_min=self.d_min, rng=self._seed_rng)
         self.history.append(out.payload)
         return out
 
@@ -746,6 +756,7 @@ def main():
     ap.add_argument("--cycles", type=int, default=16, help="number of Ψ cycles")
     ap.add_argument("--graph-format", choices=["json","graphml"], default="json", help="Φ⁴+ graph dump format")
     ap.add_argument("--dmin", type=float, default=DEFAULTS["d_min"], help="novelty target d_min baseline")
+    ap.add_argument("--seed", type=int, default=None, help="opt-in deterministic replay (integer; not cryptographic)")
     args = ap.parse_args()
 
     # Use external files if provided; otherwise fall back to built-in defaults
@@ -755,7 +766,7 @@ def main():
         print("Spec validation errors:", *[f"- {e}" for e in errs], sep="\n")
         sys.exit(2)
 
-    eng = OriginEngine(d_min=args.dmin)
+    eng = OriginEngine(d_min=args.dmin, seed=args.seed)
     eng.phase.graph_format = args.graph_format
 
     prompts = read_jsonl(args.prompts) if args.prompts else DEFAULT_PROMPTS

@@ -2,9 +2,10 @@
 
 ## Development summary
 
-**Status:** proposed `v0.1.1` integrated candidate; no stable tag or release. **Current goal:** verify genuine Φ⁴+ engine evolution and make failed graph writes visible in the consistency report.
-**Latest development (2026-11-06):** the candidate now counts failed Φ⁴+ graph dumps as failures rather than silently omitting them from its score. A new integration suite drives actual engine cycles from Φ through Φ⁴ and reads back three JSON or GraphML outputs in isolated directories. **12/12 tests passed on Python 3.11 and 3.12** in [candidate PR CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42202352772); this is not device validation.
-**Next:** (1) review final merged-head checks; (2) explore opt-in seeded replay; (3) verify Pythonista on a trusted device before claiming that platform is tested.
+**Status:** proposed `v0.1.1` integrated candidate; optional seeded replay is a separate tested PR candidate, not yet merged, not yet stable.
+**Current goal:** make reproducible research runs possible without changing normal OS-backed randomness.
+**Latest development (2026-11-06):** an isolated per-engine integer seed option now feeds P/U/C/Ψ; added checks for clean-process replay, independent streams and graph round trips. **17/17 tests passed on Python 3.11 and 3.12** in [PR CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42210406967); target-device checks remain absent.
+**Next:** (1) verify exact final PR and merged-main checks; (2) keep replay limitations clear; (3) separately seek trusted Pythonista/device evidence before stable promotion.
 
 [Changelog](./CHANGELOG.md) · [Developer notes and decisions](./DEV_NOTES.md) · [Milestones](./ROADMAP.md)
 
@@ -28,7 +29,9 @@ Or save just `origin_engine_monolith.py` in a directory and run it there. Output
 python3 origin_engine_monolith.py --help
 ```
 
-Optional flags: `--spec` (JSON spec), `--prompts` (JSONL), `--cycles`, `--dmin`, and `--graph-format json|graphml`. Later phases may write files to `oe_graphs/` relative to the **working directory**. Run in a disposable directory if you do not want output files in your working tree.
+Optional flags: `--spec` (JSON spec), `--prompts` (JSONL), `--cycles`, `--dmin`, `--graph-format json|graphml`, and `--seed` (integer).
+
+For repeatable research, run `python3 origin_engine_monolith.py --cycles 3 --seed 42`. Equal seeds and inputs reproduce glyphs and metrics on a matching implementation. Graph filenames embed timestamps and directory paths, so compare normalized graph records and actual graph contents rather than raw paths. Without `--seed`, the existing OS-backed randomness is preserved. **Seeded replay is not cryptographic and cross-version identical output is not guaranteed.** Later phases may write files to `oe_graphs/` relative to the **working directory**. Run in a disposable directory if you do not want output files in your working tree.
 
 ## Verification
 
@@ -36,6 +39,6 @@ Optional flags: `--spec` (JSON spec), `--prompts` (JSONL), `--cycles`, `--dmin`,
 python3 -m unittest discover -s tests -v
 ```
 
-This checks the historical source's Git blob identity, CLI help, bounded generation, invalid-spec rejection, deterministic export collisions, JSON preservation and GraphML label round trips. It does not check seeded replay or device-specific Pythonista execution. The bundled scorecard is informative, not an exhaustive quality or safety test.
+This checks the historical source's Git blob identity, CLI help, bounded generation, invalid-spec rejection, deterministic export collisions, JSON preservation and GraphML label round trips. The new seeded replay tests check independent subprocess runs, per-engine isolation and normalized Φ⁴ JSON/GraphML graph outputs; they do not establish cross-platform byte identity or device-specific Pythonista execution. The bundled scorecard is informative, not an exhaustive quality or safety test.
 
 See [developer notes](./DEV_NOTES.md) for historical context, trade-offs and [ROADMAP.md](./ROADMAP.md) for the release gate.

@@ -1,5 +1,18 @@
 # Origin Engine changelog
 
+## Unreleased — opt-in seeded replay candidate (2026-11-06)
+
+**Status:** separate development branch for proposed `v0.1.1`. 17/17 tests passed in PR CI on Python 3.11/3.12; awaiting final review/merge, not tagged stable.
+
+### Added
+- Optional integer `--seed` and `OriginEngine(seed=...)` introduce private pseudorandom replay across P/U/C/Ψ. Default operator calls continue to use `os.urandom` and `SystemRandom`.
+- Seeded replay checks cover fresh Python processes, different seeds, independent interleaved engines, default OS entropy and normalized Φ⁴ JSON/GraphML round trips.
+- README usage and developer decision note explain trade-offs and continuation.
+
+**Reason:** deterministic research comparisons without altering global random state or reducing default entropy. **Validation:** [PR CI 42210406967](https://github.com/levelinglucy/Origin_Engine/actions/runs/42210406967) passed 17/17 checks on each Python 3.11 and 3.12, including five new replay tests. No target-device check or stable release. Seeded draws are not cryptographic; timestamps/paths and cross-version output identities are not guaranteed.
+
+[Engineering rationale](./DEV_NOTES.md#decision-2026-11-06-opt-in-per-engine-seeded-replay) · [Roadmap](./ROADMAP.md)
+
 ## Unreleased — high-phase integration and honest export metrics (2026-11-06)
 
 **Status:** included in [PR #4](https://github.com/levelinglucy/Origin_Engine/pull/4) for proposed `v0.1.1`. Tested candidate; not a tagged stable release.
