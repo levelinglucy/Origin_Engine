@@ -2,9 +2,9 @@
 
 ## Development summary
 
-**Status:** proposed `v0.1.1` integrated candidate plus graph-integrity fix merged in [PR #2](https://github.com/levelinglucy/Origin_Engine/pull/2); no stable release or new tag. **Current goal:** preserve every exported graph and round-trip valid JSON/GraphML labels.  
-**Latest development (2026-11-06):** the canonical standalone engine now selects an exclusive unused filename instead of overwriting graphs with a matching identity/second, and uses XML-safe GraphML serialization. The preserved historical source is unchanged. **Graph-integrity PR and merged-main CI each passed 9/9 tests on Python 3.11 and 3.12. Stable release remains a separate decision.**  
-**Next:** (1) check graph export on a trusted iPhone/Pythonista device when available; (2) prototype optional seeded replay without altering default entropy; (3) review remaining stable-release criteria.
+**Status:** proposed `v0.1.1` integrated candidate; no stable tag or release. **Current goal:** verify genuine Φ⁴+ engine evolution and make failed graph writes visible in the consistency report.
+**Latest development (2026-11-06):** the candidate now counts failed Φ⁴+ graph dumps as failures rather than silently omitting them from its score. A new integration suite drives actual engine cycles from Φ through Φ⁴ and reads back three JSON or GraphML outputs in isolated directories. **Candidate validation awaits CI**; earlier graph export checks passed on Python 3.11/3.12.
+**Next:** (1) run and review integration CI; (2) pursue opt-in seeded replay only after the integrity gate; (3) verify Pythonista on a trusted device before claiming that platform is tested.
 
 [Changelog](./CHANGELOG.md) · [Developer notes and decisions](./DEV_NOTES.md) · [Milestones](./ROADMAP.md)
 
