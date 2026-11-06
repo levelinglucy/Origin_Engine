@@ -2,9 +2,9 @@
 
 ## Development summary
 
-**Status:** proposed `v0.1.1` integrated candidate plus graph-integrity fix under review; no stable release or new tag. **Current goal:** preserve every exported graph and round-trip valid JSON/GraphML labels.  
-**Latest development (2026-11-06):** the canonical standalone engine now selects an exclusive unused filename instead of overwriting graphs with a matching identity/second, and uses XML-safe GraphML serialization. The preserved historical source is unchanged. **Graph-integrity PR CI passed 9/9 tests on both Python 3.11 and 3.12; merge and stable release remain separate gates.**  
-**Next:** (1) verify graph integrity regressions on Python 3.11/3.12; (2) consider release validation on a trusted iPhone/Pythonista environment; (3) prototype optional seeded replay without changing default entropy.
+**Status:** proposed `v0.1.1` integrated candidate plus graph-integrity fix merged in [PR #2](https://github.com/levelinglucy/Origin_Engine/pull/2); no stable release or new tag. **Current goal:** preserve every exported graph and round-trip valid JSON/GraphML labels.  
+**Latest development (2026-11-06):** the canonical standalone engine now selects an exclusive unused filename instead of overwriting graphs with a matching identity/second, and uses XML-safe GraphML serialization. The preserved historical source is unchanged. **Graph-integrity PR and merged-main CI each passed 9/9 tests on Python 3.11 and 3.12. Stable release remains a separate decision.**  
+**Next:** (1) check graph export on a trusted iPhone/Pythonista device when available; (2) prototype optional seeded replay without altering default entropy; (3) review remaining stable-release criteria.
 
 [Changelog](./CHANGELOG.md) · [Developer notes and decisions](./DEV_NOTES.md) · [Milestones](./ROADMAP.md)
 
