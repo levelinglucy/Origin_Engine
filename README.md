@@ -3,8 +3,8 @@
 ## Development summary
 
 **Status:** proposed `v0.1.1` integrated candidate; no stable tag or release. **Current goal:** verify genuine Φ⁴+ engine evolution and make failed graph writes visible in the consistency report.
-**Latest development (2026-11-06):** the candidate now counts failed Φ⁴+ graph dumps as failures rather than silently omitting them from its score. A new integration suite drives actual engine cycles from Φ through Φ⁴ and reads back three JSON or GraphML outputs in isolated directories. **Candidate validation awaits CI**; earlier graph export checks passed on Python 3.11/3.12.
-**Next:** (1) run and review integration CI; (2) pursue opt-in seeded replay only after the integrity gate; (3) verify Pythonista on a trusted device before claiming that platform is tested.
+**Latest development (2026-11-06):** the candidate now counts failed Φ⁴+ graph dumps as failures rather than silently omitting them from its score. A new integration suite drives actual engine cycles from Φ through Φ⁴ and reads back three JSON or GraphML outputs in isolated directories. **12/12 tests passed on Python 3.11 and 3.12** in [candidate PR CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42202352772); this is not device validation.
+**Next:** (1) review final merged-head checks; (2) explore opt-in seeded replay; (3) verify Pythonista on a trusted device before claiming that platform is tested.
 
 [Changelog](./CHANGELOG.md) · [Developer notes and decisions](./DEV_NOTES.md) · [Milestones](./ROADMAP.md)
 
