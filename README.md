@@ -1,13 +1,8 @@
 # Origin Engine — Monolith Edition
 
-## Development summary
+## Development
 
-**Status:** proposed `v0.1.1` integrated candidate; opt-in seeded replay merged in [PR #5](https://github.com/levelinglucy/Origin_Engine/pull/5) and remains an untagged candidate, not yet stable.
-**Current goal:** make reproducible research runs possible without changing normal OS-backed randomness.
-**Latest development (2026-11-06):** an isolated per-engine integer seed option now feeds P/U/C/Ψ; added checks for clean-process replay, independent streams and graph round trips. **17/17 tests passed on each of Python 3.11 and 3.12** for the [final PR](https://github.com/levelinglucy/Origin_Engine/actions/runs/42210535894) and [merged main](https://github.com/levelinglucy/Origin_Engine/actions/runs/42210586116); target-device checks remain absent.
-**Next:** (1) seek trusted Pythonista/device validation; (2) assess release criteria without overstating replay guarantees; (3) investigate higher-priority defects if reported.
-
-[Changelog](./CHANGELOG.md) · [Developer notes and decisions](./DEV_NOTES.md) · [Milestones](./ROADMAP.md)
+The proposed `v0.1.1` remains an untagged, non-stable source candidate. See [developer notes for the current goal and validation](./DEV_NOTES.md), [the changelog](./CHANGELOG.md) and [the milestone roadmap](./ROADMAP.md).
 
 ## What it does
 
@@ -29,7 +24,7 @@ Or save just `origin_engine_monolith.py` in a directory and run it there. Output
 python3 origin_engine_monolith.py --help
 ```
 
-Optional flags: `--spec` (JSON spec), `--prompts` (JSONL), `--cycles`, `--dmin`, `--graph-format json|graphml`, and `--seed` (integer).
+Optional flags: `--spec` (JSON spec), `--prompts` (JSONL), `--cycles`, `--dmin`, `--graph-format json|graphml`, and `--seed` (integer). CLI `--cycles` requires a positive integer and `--dmin` a finite, non-negative number (zero is allowed). Invalid arguments are refused before generation with exit status 2.
 
 For repeatable research, run `python3 origin_engine_monolith.py --cycles 3 --seed 42`. Equal seeds and inputs reproduce glyphs and metrics on a matching implementation. Graph filenames embed timestamps and directory paths, so compare normalized graph records and actual graph contents rather than raw paths. Without `--seed`, the existing OS-backed randomness is preserved. **Seeded replay is not cryptographic and cross-version identical output is not guaranteed.** Later phases may write files to `oe_graphs/` relative to the **working directory**. Run in a disposable directory if you do not want output files in your working tree.
 

@@ -47,7 +47,7 @@ DEFAULT_PROMPTS = [
 # ================================================================
 # Utilities
 # ================================================================
-import os, sys, json, argparse, random, hashlib, datetime
+import os, sys, json, argparse, random, hashlib, datetime, math
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from typing import List, Dict, Tuple, Iterable, Optional
@@ -758,6 +758,13 @@ def main():
     ap.add_argument("--dmin", type=float, default=DEFAULTS["d_min"], help="novelty target d_min baseline")
     ap.add_argument("--seed", type=int, default=None, help="opt-in deterministic replay (integer; not cryptographic)")
     args = ap.parse_args()
+    # A zero/negative request used to silently produce one emission; NaN and
+    # infinities in the novelty threshold could fabricate or crash scorecards.
+    # Refuse before loading external inputs or performing engine work.
+    if args.cycles < 1:
+        ap.error("--cycles must be a positive integer")
+    if not math.isfinite(args.dmin) or args.dmin < 0:
+        ap.error("--dmin must be a finite non-negative number")
 
     # Use external files if provided; otherwise fall back to built-in defaults
     spec = load_spec(args.spec) if args.spec else OESpec(**DEFAULT_SPEC)

@@ -1,5 +1,13 @@
 # Origin Engine changelog
 
+## Unreleased — honest CLI input contracts (2026-11-08)
+
+- Refuse `--cycles` of zero or less, which previously caused a seemingly successful one-emission run.
+- Refuse non-finite or negative `--dmin` before processing, preventing NaN/Infinity from causing misleading output or a late failure. Zero remains supported.
+- Add isolated CLI regression checks with valid-boundary coverage. Historical source and programmatic engine controls remain unchanged.
+
+[Input-contract decision](./DEV_NOTES.md#decision-2026-11-08-make-invalid-cli-requests-fail-before-work) · [PR #7 / validation evidence](https://github.com/levelinglucy/Origin_Engine/pull/7). The proposed `v0.1.1` remains unreleased; no stable tag or Pythonista/device certification.
+
 ## Unreleased — opt-in seeded replay candidate (2026-11-06)
 
 **Status:** separate development branch for proposed `v0.1.1`. Merged in [PR #5](https://github.com/levelinglucy/Origin_Engine/pull/5) at [`ab27ea30`](https://github.com/levelinglucy/Origin_Engine/commit/ab27ea30c22b93da9a0625c2c22bc5d2d96e204f); 17/17 tests passed on Python 3.11/3.12 in final PR and merged-main CI. Not tagged stable.

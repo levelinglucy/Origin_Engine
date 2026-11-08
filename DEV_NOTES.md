@@ -2,12 +2,21 @@
 
 ## Development summary
 
-**Current stage:** proposed `v0.1.1` integrated candidate; seeded replay is merged in [PR #5](https://github.com/levelinglucy/Origin_Engine/pull/5), but not tagged stable, not tagged stable.
-**Current goal:** optional deterministic replay through a private per-engine stream without changing default OS entropy.
-**Latest development (2026-11-06):** optional `--seed`/constructor seed passes a private generator through P/U/C/Ψ, with clean-process, interleaving and graph-output regression checks. **17/17 tests passed on Python 3.11 and 3.12** for [final PR CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42210535894) and [merged-main CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42210586116).
-**Next:** pursue trusted device checks before any stable promotion, document replay limits, and keep device/stable-release evidence separate.
+**Goal:** reproducible symbolic generation and honest, lossless graph exports with explicit CLI parameter contracts.
+**Integration:** entrypoint/graph/seeded-replay improvements already merged, most recently [PR #5](https://github.com/levelinglucy/Origin_Engine/pull/5). CLI parameter validation proposed in [PR #7](https://github.com/levelinglucy/Origin_Engine/pull/7); consult that PR for its live integration status.
+**Validation:** prior merged seeded-replay revision passed 17/17 Python 3.11/3.12 tests in [CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42210586116). CLI guard regression evidence belongs to PR #7 and must be evaluated at its exact candidate revision, not inherited from earlier checks.
+**Release:** proposed `v0.1.1` untagged; no stable publication and no iPhone/Pythonista test.
+**Next:** validate PR #7, then consider device evidence or independent substantive improvements without making device testing routine user work.
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
+
+## Decision 2026-11-08: make invalid CLI requests fail before work
+
+**Verified predecessor:** `--cycles 0` and negative values exited successfully after emitting one glyph, because `run_prompts` used `max(1, N)`. Non-finite `--dmin` values reached novelty and score calculations; `nan` could crash after printing emissions while `inf` could misleadingly exit successfully. This is a CLI correctness problem, not evidence of corruption of historical engine files.
+
+**Choice:** reject non-positive CLI cycle counts and non-finite or negative CLI novelty thresholds with argparse exit status 2, before input loading or engine execution. Keep `--dmin 0` valid for experimentation; do not impose an arbitrary upper cycle cap or alter the programmatic `run_prompts` API in this patch. This does not solve memory/time costs of very large valid runs.
+
+**Alternatives:** silently clamp invalid values to defaults (misleading), repair only error messages after computation (too late), or add a broad resource policy (requires separate evidence). Three small subprocess regressions cover failure and valid boundary behaviour. [PR #7](https://github.com/levelinglucy/Origin_Engine/pull/7) is the canonical test-first and integration record. The source-only change affects CLI requests; historical monolith, seed algorithm, graph exports, JSON formats and prior research outputs are untouched.
 
 ## Decision 2026-11-06: opt-in per-engine seeded replay
 
