@@ -4,13 +4,23 @@
 
 **Goal:** reproducible symbolic generation with honest, complete graph exports and explicit input contracts. Target v0.1.1 source candidate, CPython 3.11/3.12; Pythonista/iPhone unverified.
 
-**Integration:** CLI guard [PR #7](https://github.com/levelinglucy/Origin_Engine/pull/7) merged at `4805b22`. Complete-or-absent graph publication is proposed in [PR #8](https://github.com/levelinglucy/Origin_Engine/pull/8); it is **not merged or released** until verified.
+**Integration:** Complete-only publication [PR #8](https://github.com/levelinglucy/Origin_Engine/pull/8) merged at `354fbe6`. Strict export scalars and their current merge status belong to [PR #9](https://github.com/levelinglucy/Origin_Engine/pull/9); use its live status rather than inferring integration from these notes.
 
-**Validation:** PR #7 passed 20/20 tests on Python 3.11/3.12 at [exact merged-main CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42438215235). PR #8's test-first run [42466840904](https://github.com/levelinglucy/Origin_Engine/actions/runs/42466840904) failed in two new expected cases on the old exporter; use exact candidate PR CI for repair evidence.
+**Validation:** Exact merged-main [CI 42467061939](https://github.com/levelinglucy/Origin_Engine/actions/runs/42467061939) passed 22/22 tests on Python 3.11 and 3.12 for PR #8. The new encoding regressions reproduced predecessor failures on both Python versions in [test-first CI 42471435625](https://github.com/levelinglucy/Origin_Engine/actions/runs/42471435625). Candidate and merged validation for PR #9 must be checked independently at their exact revisions; [PR #9](https://github.com/levelinglucy/Origin_Engine/pull/9) is the evidence record.
 
-**Release:** untagged candidate, no stable or device claim. **Next:** validate current PR #8 head, preserve previous graph names/contents and release status, then select a separate meaningful milestone.
+**Release:** proposed v0.1.1 remains untagged and non-stable; target CPython 3.11/3.12. Pythonista, hardened filesystem races and power-loss durability unverified. **Next:** preserve format validity and recoverable graph exports, then choose a new evidence-based milestone without status-only commits.
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
+
+## Decision 2026-11-08: reject graphs that cannot be represented faithfully
+
+**Confirmed predecessor behaviour:** `json.dumps` silently emitted `NaN` and `Infinity` for non-finite floats; those are not standard JSON numbers. ElementTree escaped `&` and `<` correctly but wrote forbidden XML 1.0 controls such as NUL into GraphML labels/IDs/endpoints. Literal carriage return in GraphML text parsed back as line feed. [PR #9 test-first CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42471435625) reproduced failures on Python 3.11/3.12 with disposable inputs. [W3C XML 1.0 character and line-ending rules](https://www.w3.org/TR/xml/#charsets).
+
+**Choice:** refuse non-finite JSON scalars using `allow_nan=False`; validate XML 1.0 scalar codepoints in dynamic node/edge identifiers and labels before creating output directories; serialize literal carriage returns from XML text as `&#13;` references to preserve round-trip value. These checks happen before staging/publishing. The previous graph naming, complete-only publication, historical monolith and valid Unicode samples remain unchanged.
+
+**Alternatives:** silently replace bad controls (data loss), allow malformed files (false evidence), or post-parse everything after publication (too late). Explicit refusal is safer than claiming a corrupted graph is valid. JSON is strict at serialization; GraphML checks the relevant scalar values but does not claim full GraphML schema validation (for example, arbitrary custom IDs may violate downstream schema constraints).
+
+**Trade-offs/revisit:** previously emitted malformed exports may require regeneration from trusted source; this change does not repair historic files or validate unknown third-party extensions. JSON/GraphML encoding is checked on synthetic fixtures; do not infer device/Pythonista support or power-loss durability. [PR #9](https://github.com/levelinglucy/Origin_Engine/pull/9) owns exact-commit validation and integration evidence.
 
 ## Decision 2026-11-08: publish only fully written graph outputs
 

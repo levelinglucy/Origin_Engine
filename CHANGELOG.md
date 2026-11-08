@@ -1,5 +1,14 @@
 # Origin Engine changelog
 
+## Unreleased — strict graph scalars (2026-11-08)
+
+- Reject GraphML forbidden XML 1.0 characters in node IDs, edge endpoints and labels *before* creating an output directory, instead of publishing XML another parser cannot open.
+- Preserve carriage returns in GraphML text with character references; default XML line-ending normalization previously changed label content.
+- Refuse non-finite floats in JSON exports rather than writing nonstandard `NaN`/`Infinity` tokens. Previously generated malformed files are not silently rewritten.
+- Preserve complete-only exclusive publication, ordinary valid graph data and the historical monolith.
+
+[Encoding rationale](./DEV_NOTES.md#decision-2026-11-08-reject-graphs-that-cannot-be-represented-faithfully) · [PR #9 evidence and integration](https://github.com/levelinglucy/Origin_Engine/pull/9). Still untagged and unreleased; CPython tests do not certify Pythonista or filesystem durability.
+
 ## Unreleased — complete graph publication (2026-11-08)
 
 - Stage complete JSON/GraphML bytes in a private same-directory temporary file before atomically claiming the final filename with an exclusive hard link. Previously the final path was visible while being written, so interruption or concurrent inspection could encounter incomplete JSON/XML.
