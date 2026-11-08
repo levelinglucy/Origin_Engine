@@ -141,9 +141,9 @@ class GraphExportIntegrity(unittest.TestCase):
         # ElementTree escapes markup characters but silently writes forbidden
         # control characters that cause standard XML parsers to reject the file.
         invalid = [
-            ("node label", sample("bad\\x00label".replace("\\x00", "\x00"))),
-            ("node id", {"nodes": [{"id": "x\\x01".replace("\\x01", "\x01"), "label": "ok"}], "edges": []}),
-            ("edge endpoint", {"nodes": [], "edges": [{"source": "x\\x02".replace("\\x02", "\x02"), "target": 1}]}),
+            ("node label", sample("bad\x00label")),
+            ("node id", {"nodes": [{"id": "x\x01", "label": "ok"}], "edges": []}),
+            ("edge endpoint", {"nodes": [], "edges": [{"source": "x\x02", "target": 1}]}),
         ]
         with tempfile.TemporaryDirectory() as temp:
             with patch.object(current.os, "getcwd", return_value=temp):
@@ -168,7 +168,7 @@ class GraphExportIntegrity(unittest.TestCase):
 
     def test_graphml_preserves_carriage_return_in_label(self):
         # XML replaces literal CR with LF unless written as a character reference.
-        label = "one\\rtwo".replace("\\r", "\r")
+        label = "one\rtwo"
         with tempfile.TemporaryDirectory() as temp:
             with patch.object(current.os, "getcwd", return_value=temp):
                 path = current._dump_graph_file(sample(label), 4, "ident", "graphml")
