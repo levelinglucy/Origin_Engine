@@ -100,5 +100,42 @@ class GraphExportIntegrity(unittest.TestCase):
             self.assertFalse((Path(temp) / "oe_graphs").exists())
 
 
+    def test_graph_is_complete_before_first_destination_becomes_visible(self):
+        # A final filename must not be claimed until its JSON is fully written.
+        graph = sample("ready")
+        with tempfile.TemporaryDirectory() as temp:
+            real_link = current.os.link
+            observed = []
+
+            def inspect_publish(staged, final):
+                self.assertFalse(Path(final).exists())
+                self.assertEqual(json.loads(Path(staged).read_text(encoding="utf-8")), graph)
+                observed.append((staged, final))
+                return real_link(staged, final)
+
+            with patch.object(current.os, "getcwd", return_value=temp):
+                with patch.object(current.os, "link", side_effect=inspect_publish):
+                    path = current._dump_graph_file(graph, 4, "ident", "json")
+            self.assertEqual(len(observed), 1)
+            self.assertEqual(observed[0][1], path)
+            self.assertEqual(json.loads(Path(path).read_text(encoding="utf-8")), graph)
+            self.assertEqual(list((Path(temp) / "oe_graphs").glob(".oe_graph_stage_*")), [])
+
+    def test_publication_failure_does_not_claim_or_corrupt_final_name(self):
+        # A failed hard-link publication must leave prior exports intact.
+        with tempfile.TemporaryDirectory() as temp:
+            with patch.object(current.os, "getcwd", return_value=temp):
+                with patch.object(current.datetime, "datetime", FrozenDateTime):
+                    first = current._dump_graph_file(sample("first"), 4, "same-ident", "json")
+                    with patch.object(current.os, "link",
+                                      side_effect=OSError("simulated publication failure")):
+                        with self.assertRaisesRegex(OSError, "simulated publication failure"):
+                            current._dump_graph_file(sample("second"), 4, "same-ident", "json")
+            directory = Path(temp) / "oe_graphs"
+            self.assertEqual(json.loads(Path(first).read_text(encoding="utf-8")), sample("first"))
+            self.assertEqual(sorted(path.name for path in directory.iterdir()),
+                             [Path(first).name])
+
+
 if __name__ == "__main__":
     unittest.main()

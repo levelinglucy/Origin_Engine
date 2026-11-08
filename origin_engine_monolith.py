@@ -23,9 +23,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-# Active entrypoint: optional --seed adds per-engine reproducible experiments;
-# normal OS-backed entropy is unchanged. CI passed; next: trusted device checks.
-# See DEV_NOTES.md, CHANGELOG.md; historical monolith is preserved.
+# Active entrypoint; historical monolith is preserved. See DEV_NOTES.md for
+# supported parameters, graph export assumptions and development status.
 
 # ================================================================
 # Built-in Defaults for Self-Contained Mode
@@ -47,7 +46,7 @@ DEFAULT_PROMPTS = [
 # ================================================================
 # Utilities
 # ================================================================
-import os, sys, json, argparse, random, hashlib, datetime, math
+import os, sys, json, argparse, random, hashlib, datetime, math, tempfile
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from typing import List, Dict, Tuple, Iterable, Optional
@@ -268,10 +267,10 @@ def psi_sandbox(s: str) -> str:
 def _dump_graph_file(graph_obj: dict, phase_level: int, ident: str, fmt: str) -> str:
     """Create a graph export without replacing another emission.
 
-    Construct and validate the text before claiming a filename. Exclusive
-    creation guards even simultaneous writers; the legacy filename is kept
-    for the first emission, followed by _0001, _0002, ... when necessary.
-    See DEV_NOTES.md for the collision and GraphML escaping decisions.
+    Construct and validate before staging. Close a private temporary file,
+    then publish by an exclusive hard link so only complete graphs receive
+    final filenames. The first emission keeps the legacy basename; later
+    collisions use _0001, _0002, etc. See DEV_NOTES.md for trade-offs.
     """
     if fmt == "json":
         payload = json.dumps(graph_obj, ensure_ascii=False, indent=2)
@@ -304,27 +303,38 @@ def _dump_graph_file(graph_obj: dict, phase_level: int, ident: str, fmt: str) ->
     os.makedirs(outdir, exist_ok=True)
     stem = f"OE_graph_phase{phase_level}_{ident_short}_{ts}"
 
-    for serial in range(10000):
-        suffix = "" if serial == 0 else f"_{serial:04d}"
-        fpath = os.path.join(outdir, f"{stem}{suffix}.{fmt}")
-        try:
-            # Mode x uses exclusive creation: no check-then-open race and no
-            # truncation of files from earlier runs (even from other processes).
-            output = open(fpath, "x", encoding="utf-8", newline="\n")
-        except FileExistsError:
-            continue
-        try:
-            with output:
-                output.write(payload)
-        except BaseException:
-            # Remove only our newly-created, incomplete file on write failure.
+    # Never expose a requested .json/.graphml filename while its bytes are
+    # incomplete. A private same-directory stage is closed before an atomic
+    # exclusive hard-link claims the destination (without replacing anything).
+    # An interrupted process may leave a .tmp stage, not a partial graph name.
+    stage_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", newline="\n", dir=outdir,
+            prefix=".oe_graph_stage_", suffix=".tmp", delete=False,
+        ) as stage:
+            stage_path = stage.name
+            stage.write(payload)
+
+        for serial in range(10000):
+            suffix = "" if serial == 0 else f"_{serial:04d}"
+            fpath = os.path.join(outdir, f"{stem}{suffix}.{fmt}")
             try:
-                os.unlink(fpath)
+                # os.link is an exclusive publication step on the same volume:
+                # existing names win, and the final name points to full bytes.
+                os.link(stage_path, fpath)
+            except FileExistsError:
+                continue
+            return fpath
+        raise FileExistsError("No free filename for Origin Engine graph export")
+    finally:
+        if stage_path is not None:
+            try:
+                os.unlink(stage_path)
             except OSError:
+                # An unlink failure cannot turn a published graph into a
+                # partial one; a leftover private stage needs manual cleanup.
                 pass
-            raise
-        return fpath
-    raise FileExistsError("No free filename for Origin Engine graph export")
 
 def Ψ(iota: Iota, history: List[str], phase: Phase, d_min: float=0.35, *, rng=None) -> Construct:
     active_rng = _rng if rng is None else rng

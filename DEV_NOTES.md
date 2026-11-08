@@ -2,13 +2,25 @@
 
 ## Development summary
 
-**Goal:** reproducible symbolic generation and honest, lossless graph exports with explicit CLI parameter contracts.
-**Integration:** entrypoint/graph/seeded-replay improvements already merged, most recently [PR #5](https://github.com/levelinglucy/Origin_Engine/pull/5). CLI parameter validation proposed in [PR #7](https://github.com/levelinglucy/Origin_Engine/pull/7); consult that PR for its live integration status.
-**Validation:** prior merged seeded-replay revision passed 17/17 Python 3.11/3.12 tests in [CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42210586116). CLI guard regression evidence belongs to PR #7 and must be evaluated at its exact candidate revision, not inherited from earlier checks.
-**Release:** proposed `v0.1.1` untagged; no stable publication and no iPhone/Pythonista test.
-**Next:** validate PR #7, then consider device evidence or independent substantive improvements without making device testing routine user work.
+**Goal:** reproducible symbolic generation with honest, complete graph exports and explicit input contracts. Target v0.1.1 source candidate, CPython 3.11/3.12; Pythonista/iPhone unverified.
+
+**Integration:** CLI guard [PR #7](https://github.com/levelinglucy/Origin_Engine/pull/7) merged at `4805b22`. Complete-or-absent graph publication is proposed in [PR #8](https://github.com/levelinglucy/Origin_Engine/pull/8); it is **not merged or released** until verified.
+
+**Validation:** PR #7 passed 20/20 tests on Python 3.11/3.12 at [exact merged-main CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42438215235). PR #8's test-first run [42466840904](https://github.com/levelinglucy/Origin_Engine/actions/runs/42466840904) failed in two new expected cases on the old exporter; use exact candidate PR CI for repair evidence.
+
+**Release:** untagged candidate, no stable or device claim. **Next:** validate current PR #8 head, preserve previous graph names/contents and release status, then select a separate meaningful milestone.
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
+
+## Decision 2026-11-08: publish only fully written graph outputs
+
+**Confirmed predecessor behaviour:** export used `open(..., "x")` on the final JSON/GraphML path before writing data. Exclusive mode prevented overwriting an existing graph, but a process termination or simultaneous reader could observe an empty/truncated file under a finished-looking filename. The test-first [PR #8](https://github.com/levelinglucy/Origin_Engine/pull/8) reproduces the absent publication barrier with two failures in Python 3.12 CI; the other supported version also failed.
+
+**Choice:** serialize before filesystem side effects, write to a private same-directory `.oe_graph_stage_*.tmp` file and close it before publishing with `os.link(stage, final)` (atomic exclusive hard-link creation). Preserve the legacy filename and collision suffix strategy; clean up the staging path on ordinary success/failure. Filesystems disallowing hard links **fail closed** instead of producing partial final outputs. Staged files are owner-only by default; output permission is correspondingly more restrictive than the old umask-based creation. The historical filename/source stays untouched.
+
+**Alternatives:** writing directly to `x` (incomplete final visible); `os.replace` (overwrites previous graphs); and creating the final exclusively before streaming bytes (same visibility problem). Hard links are the portable standard-library approach for same-filesystem atomic no-replace publication on supported systems, not a promise about every platform.
+
+**Limits and revisit:** a hard process kill can leave a hidden staging file requiring manual cleanup; forced power loss, directory sync, hostile concurrent modifications and iPhone/Pythonista/hard-link availability are untested. No fsync durability guarantee is claimed. Revisit for a verified target filesystem lacking hard-link support, or if owner-only export permissions conflict with a supported workflow. Keep the previous stable source revision recoverable.
 
 ## Decision 2026-11-08: make invalid CLI requests fail before work
 
