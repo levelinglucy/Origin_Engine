@@ -137,5 +137,46 @@ class GraphExportIntegrity(unittest.TestCase):
                              [Path(first).name])
 
 
+    def test_graphml_refuses_forbidden_xml_characters_before_publication(self):
+        # ElementTree escapes markup characters but silently writes forbidden
+        # control characters that cause standard XML parsers to reject the file.
+        invalid = [
+            ("node label", sample("bad\\x00label".replace("\\x00", "\x00"))),
+            ("node id", {"nodes": [{"id": "x\\x01".replace("\\x01", "\x01"), "label": "ok"}], "edges": []}),
+            ("edge endpoint", {"nodes": [], "edges": [{"source": "x\\x02".replace("\\x02", "\x02"), "target": 1}]}),
+        ]
+        with tempfile.TemporaryDirectory() as temp:
+            with patch.object(current.os, "getcwd", return_value=temp):
+                for case, graph in invalid:
+                    with self.subTest(case=case):
+                        with self.assertRaisesRegex(ValueError, "XML 1.0"):
+                            current._dump_graph_file(graph, 4, "ident", "graphml")
+            self.assertFalse((Path(temp) / "oe_graphs").exists())
+
+    def test_json_export_refuses_nonfinite_numbers_before_publication(self):
+        # JSON permits only finite numbers, even though json.dumps defaults
+        # to emitting nonstandard NaN and Infinity tokens.
+        with tempfile.TemporaryDirectory() as temp:
+            with patch.object(current.os, "getcwd", return_value=temp):
+                for value in (float("nan"), float("inf"), -float("inf")):
+                    with self.subTest(value=repr(value)):
+                        graph = sample("valid")
+                        graph["weight"] = value
+                        with self.assertRaisesRegex(ValueError, "Out of range float"):
+                            current._dump_graph_file(graph, 4, "ident", "json")
+            self.assertFalse((Path(temp) / "oe_graphs").exists())
+
+    def test_graphml_preserves_carriage_return_in_label(self):
+        # XML replaces literal CR with LF unless written as a character reference.
+        label = "one\\rtwo".replace("\\r", "\r")
+        with tempfile.TemporaryDirectory() as temp:
+            with patch.object(current.os, "getcwd", return_value=temp):
+                path = current._dump_graph_file(sample(label), 4, "ident", "graphml")
+            tree = ET.parse(path)
+            data = tree.find(".//{http://graphml.graphdrawing.org/xmlns}data")
+            self.assertIsNotNone(data)
+            self.assertEqual(data.text, label)
+
+
 if __name__ == "__main__":
     unittest.main()
