@@ -1,5 +1,12 @@
 # Origin Engine changelog
 
+## Unreleased — complete graph publication (2026-11-08)
+
+- Stage complete JSON/GraphML bytes in a private same-directory temporary file before atomically claiming the final filename with an exclusive hard link. Previously the final path was visible while being written, so interruption or concurrent inspection could encounter incomplete JSON/XML.
+- Preserve pre-existing graphs, collision suffixes and the unchanged historical monolith. A failed publication leaves no claimed final file; ordinary cleanup removes the stage. An abrupt kill may leave a hidden staging file. Hard-link-disabled filesystems fail closed, and published files now default to owner-only permissions.
+
+[Design and limitations](./DEV_NOTES.md#decision-2026-11-08-publish-only-fully-written-graph-outputs) · [PR #8 / validation record](https://github.com/levelinglucy/Origin_Engine/pull/8). Not tagged stable; device, power-loss and hostile filesystem-race behaviour remain unverified.
+
 ## Unreleased — honest CLI input contracts (2026-11-08)
 
 - Refuse `--cycles` of zero or less, which previously caused a seemingly successful one-emission run.
