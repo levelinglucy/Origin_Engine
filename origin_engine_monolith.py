@@ -273,8 +273,20 @@ def _dump_graph_file(graph_obj: dict, phase_level: int, ident: str, fmt: str) ->
     collisions use _0001, _0002, etc. See DEV_NOTES.md for trade-offs.
     """
     if fmt == "json":
-        payload = json.dumps(graph_obj, ensure_ascii=False, indent=2)
+        payload = json.dumps(graph_obj, ensure_ascii=False, indent=2, allow_nan=False)
     elif fmt == "graphml":
+        def xml10_text(value):
+            """Refuse scalar values XML 1.0 cannot represent (before any I/O)."""
+            value = str(value)
+            for character in value:
+                cp = ord(character)
+                if (cp in (9, 10, 13) or 0x20 <= cp <= 0xD7FF
+                        or 0xE000 <= cp <= 0xFFFD
+                        or 0x10000 <= cp <= 0x10FFFF):
+                    continue
+                raise ValueError(f"GraphML contains forbidden XML 1.0 character U+{cp:04X}")
+            return value
+
         # ElementTree handles Unicode/XML escaping and the GraphML key
         # declaration. Hand-assembled XML corrupted labels containing & or <.
         namespace = "http://graphml.graphdrawing.org/xmlns"
@@ -286,14 +298,16 @@ def _dump_graph_file(graph_obj: dict, phase_level: int, ident: str, fmt: str) ->
             "id": f"OE_Phase{phase_level}", "edgedefault": "undirected"
         })
         for node in graph_obj.get("nodes", []):
-            element = ET.SubElement(graph, "node", {"id": f'n{node["id"]}'})
-            ET.SubElement(element, "data", {"key": "label"}).text = str(node.get("label", ""))
+            element = ET.SubElement(graph, "node", {"id": f'n{xml10_text(node["id"])}'})
+            ET.SubElement(element, "data", {"key": "label"}).text = xml10_text(node.get("label", ""))
         for edge in graph_obj.get("edges", []):
             ET.SubElement(graph, "edge", {
-                "source": f'n{edge["source"]}', "target": f'n{edge["target"]}'
+                "source": f'n{xml10_text(edge["source"])}', "target": f'n{xml10_text(edge["target"])}'
             })
         payload = '<?xml version="1.0" encoding="UTF-8"?>\n'
-        payload += ET.tostring(root, encoding="unicode") + "\n"
+        # Literal CR in XML text is normalized to LF by XML parsers; a
+        # character reference preserves the actual label without altering it.
+        payload += ET.tostring(root, encoding="unicode").replace("\r", "&#13;") + "\n"
     else:
         raise ValueError(f"Unsupported graph format: {fmt}")
 
