@@ -563,7 +563,10 @@ def _graph_connectivity_ok(graph: dict) -> Tuple[bool, dict]:
         return False, {"reason": "nodes/edges not lists"}
     if not nodes:
         return False, {"reason": "no nodes"}
-    ids = {n.get("id") for n in nodes if isinstance(n, dict)}
+    # bool compares equal to 0/1 but is not a graph identifier.
+    if any(not isinstance(n, dict) or type(n.get("id")) is not int for n in nodes):
+        return False, {"reason": "node ids must be integers"}
+    ids = {n["id"] for n in nodes}
     if ids != set(range(len(nodes))):
         return False, {"reason": "node ids not contiguous 0..N-1"}
     E = []
@@ -571,7 +574,7 @@ def _graph_connectivity_ok(graph: dict) -> Tuple[bool, dict]:
         if not isinstance(e, dict): 
             return False, {"reason": "edge not dict"}
         s, t = e.get("source"), e.get("target")
-        if not isinstance(s, int) or not isinstance(t, int):
+        if type(s) is not int or type(t) is not int:
             return False, {"reason": "edge endpoints not int"}
         if s not in ids or t not in ids:
             return False, {"reason": "edge references unknown node"}
@@ -650,14 +653,39 @@ def _parse_graphml(path: str) -> dict:
     return {"nodes": nodes, "edges": edges}
 
 def _normalize_graph_dict(graph: dict) -> dict:
-    nodes = [{"id": int(n["id"]), "label": str(n.get("label",""))} for n in graph.get("nodes",[])]
-    edges = [{"source": int(e["source"]), "target": int(e["target"])} for e in graph.get("edges",[])]
+    """Canonicalize order, never coerce graph scalar types.
+
+    JSON's string, Boolean and number values convey different information.
+    GraphML parsing already maps its declared integer IDs back to integers,
+    so legitimate JSON/GraphML outputs share this typed representation.
+    """
+    if (not isinstance(graph, dict) or not isinstance(graph.get("nodes"), list)
+            or not isinstance(graph.get("edges"), list)):
+        raise ValueError("graph must contain node and edge arrays")
+    nodes = []
+    for node in graph["nodes"]:
+        if (not isinstance(node, dict) or type(node.get("id")) is not int
+                or type(node.get("label")) is not str):
+            raise ValueError("node needs integer id and string label")
+        nodes.append({"id": node["id"], "label": node["label"]})
+    edges = []
+    for edge in graph["edges"]:
+        if (not isinstance(edge, dict) or type(edge.get("source")) is not int
+                or type(edge.get("target")) is not int):
+            raise ValueError("edge endpoints must be integers")
+        edges.append({"source": edge["source"], "target": edge["target"]})
     nodes.sort(key=lambda x: x["id"])
     edges.sort(key=lambda e: (e["source"], e["target"]))
     return {"nodes": nodes, "edges": edges}
 
+
 def _graphs_equivalent(a: dict, b: dict) -> bool:
-    return _normalize_graph_dict(a) == _normalize_graph_dict(b)
+    # Malformed disk records must fail comparison, not raise or pass by coercion.
+    try:
+        return _normalize_graph_dict(a) == _normalize_graph_dict(b)
+    except (TypeError, ValueError, KeyError):
+        return False
+
 
 def test_graph_dump_consistency(outputs: List[Dict]) -> TestResult:
     """Compare actual Φ⁴+ disk exports with sidecars, including failed writes.

@@ -2,15 +2,23 @@
 
 ## Development summary
 
-**Goal:** reproducible symbolic generation with honest, complete graph exports and explicit input contracts. Target v0.1.1 source candidate, CPython 3.11/3.12; Pythonista/iPhone unverified.
+**Goal:** reproducible symbolic generation with honest, complete graph exports and typed evidence checks. Target v0.1.1 source candidate, CPython 3.11/3.12; Pythonista/iPhone unverified.
 
-**Integration:** Complete-only graph publication [PR #8](https://github.com/levelinglucy/Origin_Engine/pull/8) and strict export scalar [PR #9](https://github.com/levelinglucy/Origin_Engine/pull/9) are merged on `main` (`b9760953`). The CLI scorecard target correction is proposed in [PR #10](https://github.com/levelinglucy/Origin_Engine/pull/10); consult its actual status before claiming integration.
+**Integration:** The selected novelty baseline correction [PR #10](https://github.com/levelinglucy/Origin_Engine/pull/10) is merged at `d14abe70`. Graph scorecard scalar-type fidelity is tracked in [PR #11](https://github.com/levelinglucy/Origin_Engine/pull/11); consult that PR for its live integration state.
 
-**Validation:** Exact merged-main [CI 42471839172](https://github.com/levelinglucy/Origin_Engine/actions/runs/42471839172) passed 25/25 tests per Python 3.11 and 3.12 for PR #9. PR #10 requires its own exact-candidate validation, including the custom-`--dmin` subprocess regression; its PR is the canonical record.
+**Validation:** [PR #10 merged-main CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42600425749) passed 26/26 tests each on Python 3.11/3.12. PR #11 records its own red predecessor reproductions and exact revision-specific checks; previous test runs cannot certify its candidate.
 
-**Release:** proposed v0.1.1 remains untagged and non-stable; target CPython 3.11/3.12. Pythonista, hardened filesystem races and power-loss durability unverified. **Next:** verify the CLI target correction on its actual candidate and merge only if checks pass; then revisit the portfolio instead of maintaining another status loop.
+**Release:** v0.1.1 remains an untagged source candidate, not a stable release. Supported CI environments are CPython 3.11/3.12. Pythonista, hostile filesystem races and power-loss durability remain unverified. **Next:** complete PR #11 only if the exact candidate checks pass and repository rules permit, then choose another useful portfolio milestone; revisit a stable release when a substantive release gate is ready.
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
+
+## Decision 2026-11-09: compare graph evidence without lossy scalar coercion
+
+**Confirmed predecessor:** graph readback normalized `id` and edge endpoints with `int(...)`, and labels with `str(...)`. Thus a JSON export altered from integer `0` to string `"0"`, or string label `"5"` to number `5`, could still receive a perfect match. The graph structure check also accepted Boolean node/edge IDs because Python treats `bool` as an integer subclass. [PR #11](https://github.com/levelinglucy/Origin_Engine/pull/11) contains test-first reproductions from disposable synthetic JSON and the canonical validation record.
+
+**Choice:** check exact integer IDs/endpoints and string labels before comparing, while retaining node/edge order normalization. Badly typed structures become mismatches rather than exceptions or passing scores. The GraphML parser already maps its textual identifiers into integer graph IDs, so legitimate JSON/GraphML round trips remain comparable. Generated graphs, graph file formats and the historical monolith are unchanged.
+
+**Alternatives and limits:** accepting convertible values hides evidence changes; comparing raw serialized JSON would falsely reject harmless order differences and GraphML's representation. This is a narrow typed-scalar check, not a full schema validator or tamper-proof signature; it does not check ignored extra fields or authenticate the provenance of a graph. Real device, race and power-loss behaviour remains unverified. Revisit if the graph schema intentionally gains additional typed fields.
 
 ## Decision 2026-11-09: score the chosen CLI novelty baseline
 
