@@ -1,5 +1,14 @@
 # Origin Engine changelog
 
+## Unreleased — typed graph evidence checking (2026-11-09)
+
+- Refuse scalar type aliases when checking graph readback: integer node IDs/edge endpoints must remain integers and text labels must remain text; strings and Booleans no longer compare equal after coercion.
+- Reject Boolean identifiers in the graph connectivity scorecard rather than counting them as integer nodes or endpoints; preserve normal graph generation and JSON/GraphML round trips.
+- Add synthetic regression tests for altered JSON records, Boolean graph IDs and unchanged valid output. No historical source or file format migration.
+
+[Decision and boundaries](./DEV_NOTES.md#decision-2026-11-09-compare-graph-evidence-without-lossy-scalar-coercion) · [PR #11 verification record](https://github.com/levelinglucy/Origin_Engine/pull/11). The source remains untagged, with device and durability behaviour unverified.
+
+
 ## Unreleased — CLI novelty scorecard accuracy (2026-11-09)
 
 - Use the validated custom `--dmin` baseline in the printed `OE-Compliance` scorecard. Previously the engine respected the chosen novelty target while the scorecard silently evaluated and displayed the built-in `0.35`.
