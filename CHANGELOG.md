@@ -1,5 +1,13 @@
 # Origin Engine changelog
 
+## Unreleased — CLI novelty scorecard accuracy (2026-11-09)
+
+- Use the validated custom `--dmin` baseline in the printed `OE-Compliance` scorecard. Previously the engine respected the chosen novelty target while the scorecard silently evaluated and displayed the built-in `0.35`.
+- Add a seeded, isolated CLI regression for both zero and a non-default target; preserve the default scorecard and all other metrics. No graph format or historical source changes.
+
+[Decision and limitations](./DEV_NOTES.md#decision-2026-11-09-score-the-chosen-cli-novelty-baseline) · [PR #10 validation and integration](https://github.com/levelinglucy/Origin_Engine/pull/10). Unreleased source candidate, no iPhone/Pythonista or power-loss assertion.
+
+
 ## Unreleased — strict graph scalars (2026-11-08)
 
 - Reject GraphML forbidden XML 1.0 characters in node IDs, edge endpoints and labels *before* creating an output directory, instead of publishing XML another parser cannot open.
