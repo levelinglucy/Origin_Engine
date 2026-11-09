@@ -4,13 +4,21 @@
 
 **Goal:** reproducible symbolic generation with honest, complete graph exports and explicit input contracts. Target v0.1.1 source candidate, CPython 3.11/3.12; Pythonista/iPhone unverified.
 
-**Integration:** Complete-only publication [PR #8](https://github.com/levelinglucy/Origin_Engine/pull/8) merged at `354fbe6`. Strict export scalars and their current merge status belong to [PR #9](https://github.com/levelinglucy/Origin_Engine/pull/9); use its live status rather than inferring integration from these notes.
+**Integration:** Complete-only graph publication [PR #8](https://github.com/levelinglucy/Origin_Engine/pull/8) and strict export scalar [PR #9](https://github.com/levelinglucy/Origin_Engine/pull/9) are merged on `main` (`b9760953`). The CLI scorecard target correction is proposed in [PR #10](https://github.com/levelinglucy/Origin_Engine/pull/10); consult its actual status before claiming integration.
 
-**Validation:** Exact merged-main [CI 42467061939](https://github.com/levelinglucy/Origin_Engine/actions/runs/42467061939) passed 22/22 tests on Python 3.11 and 3.12 for PR #8. The new encoding regressions reproduced predecessor failures on both Python versions in [test-first CI 42471435625](https://github.com/levelinglucy/Origin_Engine/actions/runs/42471435625). Candidate and merged validation for PR #9 must be checked independently at their exact revisions; [PR #9](https://github.com/levelinglucy/Origin_Engine/pull/9) is the evidence record.
+**Validation:** Exact merged-main [CI 42471839172](https://github.com/levelinglucy/Origin_Engine/actions/runs/42471839172) passed 25/25 tests per Python 3.11 and 3.12 for PR #9. PR #10 requires its own exact-candidate validation, including the custom-`--dmin` subprocess regression; its PR is the canonical record.
 
-**Release:** proposed v0.1.1 remains untagged and non-stable; target CPython 3.11/3.12. Pythonista, hardened filesystem races and power-loss durability unverified. **Next:** preserve format validity and recoverable graph exports, then choose a new evidence-based milestone without status-only commits.
+**Release:** proposed v0.1.1 remains untagged and non-stable; target CPython 3.11/3.12. Pythonista, hardened filesystem races and power-loss durability unverified. **Next:** verify the CLI target correction on its actual candidate and merge only if checks pass; then revisit the portfolio instead of maintaining another status loop.
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
+
+## Decision 2026-11-09: score the chosen CLI novelty baseline
+
+**Verified source-level mismatch:** `--dmin` already changed the engine's novelty loop, but the final `OE-Compliance` scorecard always compared emitted glyphs against the built-in default `0.35`. A custom CLI value could therefore be accepted yet produce a misleading printed `target`. The earlier `test_oe_compliance` API itself already accepted an explicit baseline; the mismatch was in `main()`.
+
+**Choice:** pass the validated `args.dmin` into the compliance scorecard. Keep the default behaviour, the phase-incremented emission targets, other scoring functions, seed replay and historical monolith unchanged. A minimal subprocess regression covers `--dmin 0.0` and `0.8`. [PR #10](https://github.com/levelinglucy/Origin_Engine/pull/10) is the authoritative test-first, CI and integration record.
+
+**Boundary:** the score remains a toy normalized edit-distance proxy, not a proof of compliance, creativity, consciousness or safety. This does not redefine `test_non_reference` or the deliberately separate dependency proxy. Revisit only if a larger scorecard semantics redesign is justified.
 
 ## Decision 2026-11-08: reject graphs that cannot be represented faithfully
 

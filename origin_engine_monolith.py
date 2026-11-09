@@ -812,7 +812,7 @@ def main():
         print(f"{i:02d}: {o['payload']} :: {short_meta}")
 
     print("\n=== Tests ===")
-    r1 = test_oe_compliance(outputs, d_min=DEFAULTS["d_min"])
+    r1 = test_oe_compliance(outputs, d_min=args.dmin)
     r2 = test_non_reference(outputs, tau_max=DEFAULTS["tau_max"])
     r3 = test_dependency_bound(outputs, epsilon_max=DEFAULTS["epsilon_max"])
     r4 = test_phase_shift(outputs)

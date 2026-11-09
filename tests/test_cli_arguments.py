@@ -48,5 +48,20 @@ class CLIBoundsChecks(unittest.TestCase):
         self.assertIn("Overall Avg:", run.stdout)
 
 
+    def test_scorecard_target_tracks_cli_dmin(self):
+        """CLI scorecard must not claim it evaluated the default when overridden."""
+        with tempfile.TemporaryDirectory() as d:
+            for chosen in ("0.0", "0.8"):
+                with self.subTest(dmin=chosen):
+                    run = invoke("--cycles", "3", "--seed", "7", "--dmin", chosen,
+                                 cwd=Path(d))
+                    self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+                    compliance = next(
+                        line for line in run.stdout.splitlines()
+                        if line.startswith("- OE-Compliance:")
+                    )
+                    self.assertIn(f"'target': {float(chosen)}", compliance)
+
+
 if __name__ == "__main__":
     unittest.main()
