@@ -2,15 +2,23 @@
 
 ## Development summary
 
-**Goal:** reproducible symbolic generation with honest, complete graph exports and evidence readback. Proposed v0.1.1 source candidate, validated on CPython 3.11/3.12 where recorded; iPhone/Pythonista remains unverified.
+**Goal:** reproducible symbolic generation with honest, complete graph exports and bounded-memory phase-shift evidence. Proposed v0.1.1 source candidate on Python 3.11/3.12; iPhone/Pythonista support unverified.
 
-**Integration:** Strict JSON graph readback [PR #13](https://github.com/levelinglucy/Origin_Engine/pull/13) is merged on main `68266b6b`. Seeded scorecard ordering [PR #14](https://github.com/levelinglucy/Origin_Engine/pull/14) is proposed on a separate branch; consult the PR for actual integration state.
+**Integration:** Strict graph JSON readback [PR #13](https://github.com/levelinglucy/Origin_Engine/pull/13) and seeded grammar ordering [PR #14](https://github.com/levelinglucy/Origin_Engine/pull/14) are merged. The pair-streaming change is separately proposed in [PR #15](https://github.com/levelinglucy/Origin_Engine/pull/15), **not merged until exact revision CI passes**.
 
-**Validation:** Previous [PR #13 merged-main CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42782828596) passed 32/32 and compilation on each of Python 3.11/3.12. A new synthetic test reproduces hash-seed-dependent phase report order on predecessor [PR #14 red CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42815290741); repaired revision must pass its own checks.
+**Validation:** Exact main `84d5776b` passed 33/33 tests on Python 3.11 and 3.12 ([CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42815671399)). Streaming test-first PR #15 revision `48cef85e` reproduced one memory-budget failure out of 34 tests on **each** Python version ([red CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42865335324)); its repaired candidate remains to be validated.
 
-**Release:** source remains untagged and unpublished as a stable release. Hostile filesystem races, abrupt power failure, and iPhone/Pythonista support remain unverified. **Next:** verify PR #14 exact candidate on 3.11/3.12; merge only with passing relevant checks and branch protections, then select another substantive portfolio milestone.
+**Publication:** untagged, non-stable source candidate; no verified GitHub release. Hostile filesystem races, abrupt power failure, large-cycle runtime feasibility and iPhone/Pythonista remain unverified. **Next:** validate PR #15 after implementation, observe branch and PR gates, and merge only if current/allowed. Preserve the historical monolith and earlier complete exports.
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
+
+## Decision 2026-11-10: bound phase-shift scorecard's temporary memory
+
+**Confirmed predecessor:** `test_phase_shift()` constructed a `list(itertools.product(pre_payloads, post_payloads))` only to compute its mean. For 500 pre/post records, the previous Python 3.11/3.12 code allocated about **16.1 MiB peak temporary memory** under `tracemalloc`, exceeding the 5 MiB synthetic acceptance budget, even though all 33 prior tests passed. [Test-first CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42865335324) shows the failure on both versions; the harness uses an allocation-free distance stub and synthetic histories without writing graphs.
+
+**Choice:** Use nested generator iteration for the same order of distance comparisons and divide by the product of the two nonzero input counts. No pair tuples are accumulated. The `norm_dist` implementation, exact pair order, empty-side result, score formula, grammar names, emitted sequences and graph files are unchanged. Alternatives included retaining a list with a documented cycle limit (unnecessary memory use) and sampling only some pairs (would change score semantics). 
+
+**Acceptance:** The same synthetic 500×500 calculation returns `cross_divergence=0.5`, preserves sorted post-transition grammar names and stays below a 5 MiB peak measured allocation; all 34 synthetic and historical tests pass on exact PR head under Python 3.11/3.12. This removes **quadratic pair storage**, not quadratic distance-computation time or the memory held by the source history itself. Tracing is implementation-specific and the 5 MiB limit is a regression tripwire, not an application memory guarantee. Do not claim all large-cycle jobs are feasible or iPhone/Pythonista certified. [PR #15](https://github.com/levelinglucy/Origin_Engine/pull/15) owns exact validation/integration evidence.
 
 ## Decision 2026-11-10: stabilize phase-shift report ordering
 
