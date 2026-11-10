@@ -2,15 +2,23 @@
 
 ## Development summary
 
-**Goal:** Keep experimental seeded generation and its CLI honest: using a JSONL prompt pack currently does not condition any generated glyphs. Proposed v0.1.1 source candidate for CPython 3.11/3.12; Pythonista unverified.
+**Goal:** Experiment with opt-in deterministic prompt-text perturbation without changing previous seeded or unprompted runs. Proposed v0.1.1 source candidate for CPython 3.11/3.12; Pythonista unverified.
 
-**Integration:** Bounded-memory phase comparisons [PR #15](https://github.com/levelinglucy/Origin_Engine/pull/15) are merged on main at `1de0c13f`. The opt-in prompt-pack notice is proposed separately in [PR #16](https://github.com/levelinglucy/Origin_Engine/pull/16); it is not integrated merely because its branch exists.
+**Integration:** The honest `--prompts` limitation notice [PR #16](https://github.com/levelinglucy/Origin_Engine/pull/16) is merged on main at `2ca95b64`. Exact-text opt-in generation is proposed separately in [PR #17](https://github.com/levelinglucy/Origin_Engine/pull/17); it is **not integrated** until merged.
 
-**Validation:** Exact merged-main [PR #15 CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42865920127) passed 34/34 tests per Python 3.11/3.12. PR #16 has its own synthetic subprocess test for two different JSONL packs at one seed; final CI evidence belongs to that PR, not this summary.
+**Validation:** Exact merged-main [PR #16 CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42885544407) passed 35/35 tests per Python 3.11/3.12. PR #17 owns its test-first controls and candidate evidence; no new test success is assumed here.
 
-**Publication:** No verified stable tag/release. Prompt conditioning is **not implemented**, and iPhone/Pythonista, crash durability, full reproducibility across environments and other graph integrity assurances remain unverified. **Next:** validate the notice and no-pack control; only design real prompt-conditioned generation after an explicit semantics/compatibility experiment.
+**Publication:** No verified stable tag/release. This is experimental hashed-text sensitivity, **not** semantic prompt understanding. iPhone/Pythonista, crash durability, cross-version reproducibility and stronger graph-integrity claims remain unverified. **Next:** validate PR #17's opt-in/opt-out contract; keep the historical monolith and default outputs unchanged.
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
+
+## Decision 2026-11-10: opt-in exact-text prompt perturbation
+
+**Problem and goal:** [PR #16](https://github.com/levelinglucy/Origin_Engine/pull/16) correctly exposed that `--prompts` was inert; the default must stay compatible with prior seeded experiments. A separate falsifiable experiment should let users measure sensitivity to supplied text rather than inventing a language model.
+
+**Opt-in method:** `--condition-prompts` requires a nonempty JSONL pack of objects with a nonblank string `prompt` field. Each of `--cycles` emissions takes the next prompt in file order, repeating round-robin. Exact UTF-8 text (no normalization) is SHA-256 hashed with a versioned domain separator. That digest modifies a **cycle-local** `Iota` identity/orbit/entropy mark before `Ψ` emits symbols. The persistent base `Iota` and PRNG draw sequence are unaltered. History and phase can diverge naturally after differently conditioned outputs. Invalid packs fail before the first cycle; no prompt text or hashes are added to logs by the mode itself.
+
+**Acceptance and limitations:** Same seed, same pack and matching implementation produce identical stdout; changing a synthetic pack changes glyphs; without the opt-in flag, same-seed runs with or without a pack remain identical. Empty/invalid inputs are rejected. This is a deterministic *hash perturbation*, **not** semantic comprehension, meaningful prompt following, causality evidence, secrecy (output may disclose aspects of the input), cryptographic authentication, cross-platform byte identity or iPhone certification. Existing JSONL packs are not migrated. Alternative designs include feeding tokens into all six operators (larger behavioural change) or silently changing default `--prompts` (breaks established comparisons); both were rejected here. Consider versioning the method if a later semantic operator is designed. [PR #17](https://github.com/levelinglucy/Origin_Engine/pull/17) holds exact validation and status.
 
 ## Decision 2026-11-10: disclose unused JSONL prompt content
 

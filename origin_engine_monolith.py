@@ -469,13 +469,27 @@ class OriginEngine:
         self.d_min = d_min
         self.phase = Phase()
 
-    def cycle(self) -> Construct:
+    def cycle(self, prompt: str|None=None) -> Construct:
         z = Z0()
         bot = P(z, self.kernel.A, rng=self._seed_rng)
         phi = S(bot)
         box = U(phi, rng=self._seed_rng)
         self.iota = Σ(box) if self.iota is None else C(self.iota, rng=self._seed_rng)
-        out = Ψ(self.iota, self.history, self.phase, d_min=self.d_min, rng=self._seed_rng)
+
+        # Opt-in synthetic perturbation, NOT language understanding: derive
+        # a cycle-local Iota from exact prompt UTF-8 bytes. The base Iota and
+        # seeded random draws are untouched by this transformation.
+        effective_iota = self.iota
+        if prompt is not None:
+            if not isinstance(prompt, str) or not prompt.strip():
+                raise ValueError("conditioned prompt must be nonempty text")
+            digest = hashhex(b"OE prompt perturbation v1\x00" + prompt.encode("utf-8"))
+            effective_iota = Iota(
+                ident=hashhex((self.iota.ident + digest).encode("ascii"))[:16],
+                orbit=(self.iota.orbit + int(digest[:8], 16)) % 97,
+                entropy_mark=hashhex((self.iota.entropy_mark + digest).encode("ascii"))[:8],
+            )
+        out = Ψ(effective_iota, self.history, self.phase, d_min=self.d_min, rng=self._seed_rng)
         self.history.append(out.payload)
         return out
 
@@ -506,11 +520,27 @@ class TestResult:
     score: float
     details: Dict
 
-def run_prompts(engine: OriginEngine, prompts: Iterable[Dict], cycles: int|None=None) -> List[Dict]:
+def run_prompts(engine: OriginEngine, prompts: Iterable[Dict], cycles: int|None=None,
+                *, condition_prompts: bool=False) -> List[Dict]:
+    # Validate the full opt-in pack before the first engine cycle; invalid
+    # inputs cannot create a partially conditioned experimental run.
+    prompt_texts = None
+    if condition_prompts:
+        prompt_texts = []
+        for item in prompts:
+            if (not isinstance(item, dict) or
+                    not isinstance(item.get("prompt"), str) or
+                    not item["prompt"].strip()):
+                raise ValueError("--condition-prompts requires JSONL objects with nonempty string 'prompt'")
+            prompt_texts.append(item["prompt"])
+        if not prompt_texts:
+            raise ValueError("--condition-prompts requires at least one prompt")
     outs = []
-    N = cycles if cycles is not None else len(list(prompts))
-    for _ in range(max(1,N)):
-        c = engine.cycle()
+    N = cycles if cycles is not None else (
+        len(prompt_texts) if condition_prompts else len(list(prompts)))
+    for i in range(max(1, N)):
+        c = (engine.cycle(prompt=prompt_texts[i % len(prompt_texts)])
+             if condition_prompts else engine.cycle())
         outs.append({"payload": c.payload, "meta": c.meta})
     return outs
 
@@ -827,7 +857,9 @@ def scorecard(results: List[TestResult]) -> Dict:
 def main():
     ap = argparse.ArgumentParser(description="Origin Engine — Monolith")
     ap.add_argument("--spec", default="", help="origin_engine_spec.json (optional)")
-    ap.add_argument("--prompts", default="", help="JSONL pack (parsed but does not yet condition generation)")
+    ap.add_argument("--prompts", default="", help="JSONL pack (parsed only unless --condition-prompts is set)")
+    ap.add_argument("--condition-prompts", action="store_true",
+                    help="opt-in exact-text SHA-256 perturbation; not semantic understanding")
     ap.add_argument("--cycles", type=int, default=16, help="number of Ψ cycles")
     ap.add_argument("--graph-format", choices=["json","graphml"], default="json", help="Φ⁴+ graph dump format")
     ap.add_argument("--dmin", type=float, default=DEFAULTS["d_min"], help="novelty target d_min baseline")
@@ -840,6 +872,8 @@ def main():
         ap.error("--cycles must be a positive integer")
     if not math.isfinite(args.dmin) or args.dmin < 0:
         ap.error("--dmin must be a finite non-negative number")
+    if args.condition_prompts and not args.prompts:
+        ap.error("--condition-prompts requires --prompts JSONL path")
 
     # Use external files if provided; otherwise fall back to built-in defaults
     spec = load_spec(args.spec) if args.spec else OESpec(**DEFAULT_SPEC)
@@ -852,10 +886,14 @@ def main():
     eng.phase.graph_format = args.graph_format
 
     prompts = read_jsonl(args.prompts) if args.prompts else DEFAULT_PROMPTS
-    if args.prompts:
+    if args.prompts and not args.condition_prompts:
         print("Notice: --prompts input is parsed but not used to condition generation; "
               "--cycles determines emission count.", file=sys.stderr)
-    outputs = run_prompts(eng, prompts, cycles=args.cycles)
+    try:
+        outputs = run_prompts(eng, prompts, cycles=args.cycles,
+                              condition_prompts=args.condition_prompts)
+    except ValueError as exc:
+        ap.error(str(exc))
 
     print("=== Ψ Emissions ===")
     for i,o in enumerate(outputs,1):
