@@ -689,6 +689,21 @@ def _graphs_equivalent(a: dict, b: dict) -> bool:
         return False
 
 
+def _strict_graph_json_pairs(pairs):
+    """Do not silently choose the last value of a repeated JSON object key."""
+    obj = {}
+    for key, value in pairs:
+        if key in obj:
+            raise ValueError(f"duplicate graph JSON key: {key!r}")
+        obj[key] = value
+    return obj
+
+
+def _reject_graph_json_constant(token):
+    """NaN/Infinity are accepted by default json.load but are not JSON numbers."""
+    raise ValueError(f"nonstandard graph JSON constant: {token}")
+
+
 def test_graph_dump_consistency(outputs: List[Dict]) -> TestResult:
     """Compare actual Φ⁴+ disk exports with sidecars, including failed writes.
 
@@ -721,7 +736,11 @@ def test_graph_dump_consistency(outputs: List[Dict]) -> TestResult:
             ext = os.path.splitext(path)[1].lower()
             if ext == ".json":
                 with open(path, "r", encoding="utf-8") as f:
-                    disk = json.load(f)
+                    disk = json.load(
+                        f,
+                        object_pairs_hook=_strict_graph_json_pairs,
+                        parse_constant=_reject_graph_json_constant,
+                    )
             elif ext == ".graphml":
                 disk = _parse_graphml(path)
             else:
