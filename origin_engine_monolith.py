@@ -532,6 +532,15 @@ def run_prompts(engine: OriginEngine, prompts: Iterable[Dict], cycles: int|None=
                     not isinstance(item.get("prompt"), str) or
                     not item["prompt"].strip()):
                 raise ValueError("--condition-prompts requires JSONL objects with nonempty string 'prompt'")
+            # JSON permits escaped unpaired surrogates, but UTF-8 encoding in
+            # cycle() cannot represent them. Validate the *entire* pack before
+            # any engine cycle or graph export can run.
+            try:
+                item["prompt"].encode("utf-8")
+            except UnicodeEncodeError as exc:
+                raise ValueError(
+                    "--condition-prompts refuses unpaired surrogate code points"
+                ) from exc
             prompt_texts.append(item["prompt"])
         if not prompt_texts:
             raise ValueError("--condition-prompts requires at least one prompt")

@@ -1,5 +1,9 @@
 # Origin Engine changelog
 
+## Unreleased — conditioned prompt Unicode preflight (2026-11-10)
+
+- Validate every opt-in JSONL prompt for UTF-8 representability before the first generation cycle. Refuse escaped unpaired surrogates instead of failing after partial work; preserve valid Unicode, unconditioned runs and the existing output format. [PR #18](https://github.com/levelinglucy/Origin_Engine/pull/18).
+
 ## Unreleased — optional exact-text prompt perturbation (2026-11-10)
 
 - Add `--condition-prompts` as an explicitly opt-in SHA-256-derived, per-cycle glyph perturbation using round-robin JSONL prompt strings. Reject malformed/empty opt-in packs before generation.
