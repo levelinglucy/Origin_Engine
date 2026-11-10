@@ -1,5 +1,13 @@
 # Origin Engine changelog
 
+## Unreleased — reject ambiguous graph JSON readback (2026-11-10)
+
+- Refuse duplicate keys at any nesting depth and nonstandard `NaN`/`Infinity` constants in saved JSON graph evidence rather than silently accepting a contradictory or invalid file as a perfect match.
+- Treat these parse failures as failed consistency checks; preserve valid graph round trips, generated JSON/GraphML, and the historical monolith.
+- Add synthetic test-first regressions for five malformed inputs plus a valid control; previous malformed reports should be regenerated from trusted source, not silently rewritten.
+
+[Decision and limitations](./DEV_NOTES.md#decision-2026-11-10-refuse-ambiguous-saved-graph-json-evidence) · [PR #13 evidence](https://github.com/levelinglucy/Origin_Engine/pull/13). Unreleased source candidate, no device or durability certification.
+
 ## Unreleased — preserve graph vertex identity (2026-11-10)
 
 - Keep phase-4 graph edge endpoints tied to vertex indices instead of converting generated glyph labels back with `list.index`. Duplicate labels no longer collapse separate vertices into self-loops or incorrect topology.
