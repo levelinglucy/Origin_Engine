@@ -1,5 +1,13 @@
 # Origin Engine changelog
 
+## Unreleased — preserve graph vertex identity (2026-11-10)
+
+- Keep phase-4 graph edge endpoints tied to vertex indices instead of converting generated glyph labels back with `list.index`. Duplicate labels no longer collapse separate vertices into self-loops or incorrect topology.
+- Preserve prior output for distinct labels, unchanged random draws and graph formats; existing exports are not rewritten. Historical monolith untouched.
+- Add a test-first synthetic repeated-label case that reproduces ten collapsed endpoints before the repair; full suite remains the acceptance gate on the supported Python versions.
+
+[Decision and limitations](./DEV_NOTES.md#decision-2026-11-10-keep-graph-vertex-identity-independent-of-glyph-labels) · [PR #12 evidence](https://github.com/levelinglucy/Origin_Engine/pull/12). Unreleased source change, not a stable or device-certified release.
+
 ## Unreleased — typed graph evidence checking (2026-11-09)
 
 - Refuse scalar type aliases when checking graph readback: integer node IDs/edge endpoints must remain integers and text labels must remain text; strings and Booleans no longer compare equal after coercion.
