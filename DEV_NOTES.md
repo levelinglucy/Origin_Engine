@@ -2,15 +2,23 @@
 
 ## Development summary
 
-**Goal:** reproducible symbolic generation with honest, complete graph exports and typed evidence checks. Target v0.1.1 source candidate, CPython 3.11/3.12; Pythonista/iPhone unverified.
+**Goal:** reproducible symbolic generation with honest, complete graph exports and evidence readback. Proposed v0.1.1 source candidate, validated on CPython 3.11/3.12 where recorded; iPhone/Pythonista remains unverified.
 
-**Integration:** The selected novelty baseline correction [PR #10](https://github.com/levelinglucy/Origin_Engine/pull/10) is merged at `d14abe70`. Graph scorecard scalar-type fidelity is tracked in [PR #11](https://github.com/levelinglucy/Origin_Engine/pull/11); consult that PR for its live integration state.
+**Integration:** Repeated-glyph graph identity repair [PR #12](https://github.com/levelinglucy/Origin_Engine/pull/12) is merged at `5cc58c50`. Strict saved-JSON evidence checking is proposed in [PR #13](https://github.com/levelinglucy/Origin_Engine/pull/13); consult that PR for its actual integration state and any subsequent merge.
 
-**Validation:** [PR #10 merged-main CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42600425749) passed 26/26 tests each on Python 3.11/3.12. PR #11 records its own red predecessor reproductions and exact revision-specific checks; previous test runs cannot certify its candidate.
+**Validation:** [PR #12 exact merged-main CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42755702427) passed 30/30 tests and compilation on each of Python 3.11/3.12. PR #13 owns its separate test-first and exact-candidate evidence; older checks do not certify it.
 
-**Release:** v0.1.1 remains an untagged source candidate, not a stable release. Supported CI environments are CPython 3.11/3.12. Pythonista, hostile filesystem races and power-loss durability remain unverified. **Next:** complete PR #11 only if the exact candidate checks pass and repository rules permit, then choose another useful portfolio milestone; revisit a stable release when a substantive release gate is ready.
+**Release:** source remains untagged and unpublished as a stable release. Hostile filesystem races, abrupt power failure, and iPhone/Pythonista support remain unverified. **Next:** accept PR #13 only if its exact checks pass, then select another substantive portfolio milestone; avoid a status-only reconciliation commit.
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
+
+## Decision 2026-11-10: refuse ambiguous saved graph JSON evidence
+
+**Confirmed predecessor:** Python's default `json.load` silently takes the last value for repeated object keys, and accepts nonstandard `NaN` and `Infinity` constants. The graph readback comparison ignores irrelevant extra fields, so a file containing a contradictory duplicate label, shadowed top-level graph, or nonstandard constant could still earn a perfect graph consistency score. Test-first disposable JSON cases and exact red CI are recorded in [PR #13](https://github.com/levelinglucy/Origin_Engine/pull/13).
+
+**Choice:** keep generated graph JSON unchanged, but use `object_pairs_hook` to reject duplicate keys at every nesting depth and `parse_constant` to reject nonstandard numeric tokens on readback. Errors count as failed saved evidence, not exceptions escaping the scorecard. Valid JSON and existing GraphML comparison still work; no historical source or user data are modified.
+
+**Trade-offs:** previously tolerated ambiguous or invalid JSON must be regenerated from trusted source before it can pass verification. This does not reject unknown but otherwise valid extra graph attributes, authenticate authorship, constrain file sizes, prove atomic readback against concurrent changes, or certify iPhone/Pythonista execution. The graph export already refuses non-finite values during writing; this change closes the readback gap rather than claiming a general JSON validator.
 
 ## Decision 2026-11-10: keep graph vertex identity independent of glyph labels
 
