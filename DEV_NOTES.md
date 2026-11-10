@@ -12,6 +12,14 @@
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
 
+## Decision 2026-11-10: keep graph vertex identity independent of glyph labels
+
+**Confirmed predecessor:** In the Φ⁴ grammar, generated vertex labels were converted to edge endpoints with `nodes.index(label)`. When two different vertices produced the same text, both endpoints resolved to the first occurrence. This could create self-loops or isolated vertices even when the sampled index pairs were distinct. The synthetic test-first [PR #12](https://github.com/levelinglucy/Origin_Engine/pull/12) forces all five labels equal and selects every edge; the predecessor fails with repeated `(0,0)` endpoints on both Python 3.11/3.12.
+
+**Choice:** keep integer vertex indices through edge selection and JSON/GraphML serialization; look up the labels by index only when formatting the readable glyph-pair text. This preserves the five distinct vertices, edge sampling order and random draw count, and changes no graph schema or historical monolith. Identical-label cases can yield different corrected edge topology and glyph-pair text stays visually ambiguous; the graph exports are the authoritative topology.
+
+**Trade-offs and boundaries:** This protects topology when generated labels coincide, not scientific significance, uniqueness of labels, cryptographic graph provenance, iPhone/Pythonista compatibility or power-loss safety. Valid ordinary distinct-label cases retain their prior mapping. [PR #12](https://github.com/levelinglucy/Origin_Engine/pull/12) owns exact-revision test and integration evidence; the source remains an untagged candidate until a release is actually published.
+
 ## Decision 2026-11-09: compare graph evidence without lossy scalar coercion
 
 **Confirmed predecessor:** graph readback normalized `id` and edge endpoints with `int(...)`, and labels with `str(...)`. Thus a JSON export altered from integer `0` to string `"0"`, or string label `"5"` to number `5`, could still receive a perfect match. The graph structure check also accepted Boolean node/edge IDs because Python treats `bool` as an integer subclass. [PR #11](https://github.com/levelinglucy/Origin_Engine/pull/11) contains test-first reproductions from disposable synthetic JSON and the canonical validation record.
