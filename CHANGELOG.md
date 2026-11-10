@@ -1,5 +1,10 @@
 # Origin Engine changelog
 
+## Unreleased — optional exact-text prompt perturbation (2026-11-10)
+
+- Add `--condition-prompts` as an explicitly opt-in SHA-256-derived, per-cycle glyph perturbation using round-robin JSONL prompt strings. Reject malformed/empty opt-in packs before generation.
+- Preserve default seeded output, opt-out prompt warning, graph formats and historical monolith. Add same-seed, different-pack, invalid-pack and mapping tests; **not** semantic language understanding or device certification. [Decision](./DEV_NOTES.md#decision-2026-11-10-opt-in-exact-text-prompt-perturbation) · [PR #17](https://github.com/levelinglucy/Origin_Engine/pull/17).
+
 ## Unreleased — truthful prompt-pack CLI notice (2026-11-10)
 
 - Disclose that `--prompts` JSONL contents are currently parsed but not used in generation, instead of silently implying prompt-conditioned experiments. Preserve seeded stdout, output format, source history and existing defaults.
