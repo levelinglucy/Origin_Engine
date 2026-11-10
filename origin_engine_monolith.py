@@ -386,16 +386,18 @@ def Ψ(iota: Iota, history: List[str], phase: Phase, d_min: float=0.35, *, rng=N
 
     def grammar_phase4plus_with_graph():
         nodes = [gen_token((3,6)) for _ in range(5)]
+        # Vertex identity is its position, not its generated label: two
+        # distinct vertices can legitimately generate identical glyphs.
         edges = []
         for i in range(len(nodes)):
             for j in range(i+1, len(nodes)):
                 if active_rng.random() < 0.5:
-                    edges.append((nodes[i], nodes[j]))
+                    edges.append((i, j))
         graph_json = {
             "nodes": [{"id": idx, "label": n} for idx, n in enumerate(nodes)],
-            "edges": [{"source": nodes.index(a), "target": nodes.index(b)} for a,b in edges]
+            "edges": [{"source": i, "target": j} for i, j in edges]
         }
-        edge_str = " ".join(f"{a}◈{b}" for a,b in edges) if edges else "∅"
+        edge_str = " ".join(f"{nodes[i]}◈{nodes[j]}" for i, j in edges) if edges else "∅"
         return edge_str, graph_json
 
     phase_grammars = {0: grammar_phase0, 1: grammar_phase1, 2: grammar_phase2, 3: grammar_phase3plus}
