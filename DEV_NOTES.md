@@ -2,15 +2,23 @@
 
 ## Development summary
 
-**Goal:** Preserve seeded experimental comparability and refuse malformed opt-in prompt packs before any engine cycle. Proposed v0.1.1 source candidate for CPython 3.11/3.12; Pythonista unverified.
+**Goal:** Preserve seeded experiment comparability while ensuring invalid prompt inputs cannot advance the engine. The v0.1.1 source remains experimental for CPython 3.11/3.12; Pythonista is unverified.
 
-**Integration:** [PR #17](https://github.com/levelinglucy/Origin_Engine/pull/17) merged exact-text opt-in generation on main `33971c7b`. [PR #18](https://github.com/levelinglucy/Origin_Engine/pull/18) proposes UTF-8 preflight for all conditioned prompt entries; it is **not integrated** until merged.
+**Integration:** [PR #18](https://github.com/levelinglucy/Origin_Engine/pull/18) integrated conditioned-pack UTF-8 preflight at main `457ddf50`. [PR #19](https://github.com/levelinglucy/Origin_Engine/pull/19) contains the separate direct-`cycle()` input-state fix; follow that PR for its integration status.
 
-**Validation:** Exact merged-main [PR #17 CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42896313537) passed 38/38 tests per Python 3.11/3.12. PR #18 owns its independent surrogate regression and candidate CI; prior checks do not prove this new candidate passed.
+**Validation:** Exact main [PR #18 CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42905522444) passed 41/41 per Python 3.11/3.12. [PR #19](https://github.com/levelinglucy/Origin_Engine/pull/19) owns its test-first failure, candidate evidence and any merged-main verification; older CI is not evidence for new code.
 
-**Publication:** No verified stable tag/release. This is experimental hashed-text sensitivity, **not** semantic prompt understanding. iPhone/Pythonista, crash durability, cross-version reproducibility and stronger graph-integrity claims remain unverified. **Next:** verify PR #18 rejects late invalid pack entries before side effects while preserving valid Unicode, default paths and the historical monolith.
+**Publication:** No verified stable tag/release. Hashed text sensitivity is an experimental mechanism, **not** semantic language understanding. iPhone/Pythonista, crash durability and cross-version byte identity remain unverified. **Next:** preserve independent direct-API preflight, compatible normal seeded generation and an unaltered historical monolith; then choose the next bounded risk or experiment.
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
+
+## Decision 2026-11-10: reject invalid direct prompts before mutation
+
+**Observed predecessor:** Although `run_prompts(..., condition_prompts=True)` checked an entire pack up front, direct callers of `OriginEngine.cycle(prompt=...)` hit the prompt type/blank/UTF-8 checks *after* `P`, `U` and `C` had consumed PRNG draws and assigned `self.iota`. A rejected request therefore changed the seeded engine even with no emission in history. [PR #19](https://github.com/levelinglucy/Origin_Engine/pull/19) contains the synthetic failed-state reproduction.
+
+**Choice:** Reuse a single strict prompt-to-UTF-8 validator in both the full pack preflight and direct `cycle()`. On direct calls, validation now precedes the first operator, so rejected blank/non-string/unpaired-surrogate inputs do not consume seed state, change Iota or start a graph export. Valid prompt bytes feed the same versioned digest as before; `None` and default seeded runs are untouched. No snapshot/rollback machinery was added.
+
+**Limits and alternatives:** This protects against *invalid prompt validation failures*, not arbitrary failures later inside the engine, graph publication or a crash halfway through a valid cycle. Wrapping the entire cycle in state-copy/restore would be a larger, unproven transaction change. This does not certify concurrent use, graph durability, scientific understanding or iPhone support. Revisit broader rollback only for a concrete failure and acceptance criteria; use the PR as the authoritative validation record.
 
 ## Decision 2026-11-10: opt-in exact-text prompt perturbation
 
