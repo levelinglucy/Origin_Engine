@@ -1,5 +1,10 @@
 # Origin Engine changelog
 
+## Unreleased — configurable dependency-bound scorecard (2026-11-10)
+
+- Honor an explicit `epsilon_max` in the adjacent-output 3-gram overlap score and report that requested target, rather than silently applying fixed 0.05/0.02 values. Retain the historical default by keeping its heuristic allowance at `2.5 × epsilon_max`.
+- Reject invalid/nonfinite epsilon inputs and add a synthetic regression for the unchanged default and a changed custom bound. The toy proxy is not a statistical independence guarantee; glyph generation, seeded output and graph formats are unchanged. [Decision](./DEV_NOTES.md#decision-2026-11-10-respect-the-dependency-bound-scorers-epsilon-argument) · [PR #20](https://github.com/levelinglucy/Origin_Engine/pull/20).
+
 ## Unreleased — direct API prompt validation before state changes (2026-11-10)
 
 - Refuse invalid direct `OriginEngine.cycle(prompt=...)` inputs before PRNG draws or Iota mutation; share UTF-8 validation with the conditioned-pack preflight. A rejected direct request no longer changes the next seeded emission.

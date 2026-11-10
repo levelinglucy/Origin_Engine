@@ -2,15 +2,23 @@
 
 ## Development summary
 
-**Goal:** Preserve seeded experiment comparability while ensuring invalid prompt inputs cannot advance the engine. The v0.1.1 source remains experimental for CPython 3.11/3.12; Pythonista is unverified.
+**Goal:** Make Origin Engine's dependency-bound scorecard honor the epsilon parameter without changing default seeded scoring or glyph generation; proposed v0.1.1 source remains experimental on CPython 3.11/3.12, with Pythonista unverified.
 
-**Integration:** [PR #18](https://github.com/levelinglucy/Origin_Engine/pull/18) integrated conditioned-pack UTF-8 preflight at main `457ddf50`. [PR #19](https://github.com/levelinglucy/Origin_Engine/pull/19) contains the separate direct-`cycle()` input-state fix; follow that PR for its integration status.
+**Integration:** Direct prompt preflight [PR #19](https://github.com/levelinglucy/Origin_Engine/pull/19) is merged at main `90b021cd`. The dependency-bound correction is reviewable [PR #20](https://github.com/levelinglucy/Origin_Engine/pull/20), not integrated solely because a branch exists.
 
-**Validation:** Exact main [PR #18 CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42905522444) passed 41/41 per Python 3.11/3.12. [PR #19](https://github.com/levelinglucy/Origin_Engine/pull/19) owns its test-first failure, candidate evidence and any merged-main verification; older CI is not evidence for new code.
+**Validation:** Historical [PR #19 CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42914833261) tested 43/43 per Python 3.11/3.12 on its exact main. PR #20's new tests and revision-specific checks must be evaluated separately before any merge.
 
-**Publication:** No verified stable tag/release. Hashed text sensitivity is an experimental mechanism, **not** semantic language understanding. iPhone/Pythonista, crash durability and cross-version byte identity remain unverified. **Next:** preserve independent direct-API preflight, compatible normal seeded generation and an unaltered historical monolith; then choose the next bounded risk or experiment.
+**Publication:** No verified stable release/tag. The dependency metric is heuristic, not a statistical independence proof; iPhone/Pythonista and crash durability remain unverified. **Next:** complete the synthetic epsilon contract, observe PR checks on the final branch, and only merge when relevant checks are passing.
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
+
+## Decision 2026-11-10: respect the dependency-bound scorer's epsilon argument
+
+**Observed predecessor:** `test_dependency_bound(outputs, epsilon_max=...)` accepted an epsilon argument but always evaluated an adjacent-output 3-gram overlap against `0.05` and reported `target≈ε: 0.02`. Callers requesting a stricter or looser bound received the same score and advertised target. Synthetic outputs whose adjacent overlap is exactly 0.25 expose this defect: historical default scores 2.4, but selecting ε=0.12 ought to change the proxy allowance and score.
+
+**Choice and acceptance:** Retain historical default scoring by documenting the existing heuristic proxy as **2.5 × epsilon_max** (default ε=0.02 corresponds to 0.05). Reject non-finite, nonnumeric, Boolean and out-of-range ε values; use the selected proxy allowance for scoring and report the actual requested epsilon. A test fixes the exact default score and asserts that a looser explicit bound changes the synthetic score and displayed target. Only scorecard API logic changes: generated glyphs, PRNG state, graphs and the CLI default are unaffected. [PR #20](https://github.com/levelinglucy/Origin_Engine/pull/20) owns revision-specific validation and integration status.
+
+**Limits and trade-offs:** The factor 2.5 is a retained historical toy heuristic, **not** a derived confidence level, probability of dependence or meaningful causal independence criterion. Different epsilon requests can now change scores, but this does not make the underlying metric scientifically validated. For actual statistical evidence, replace the proxy in a separately versioned experiment with an explicit calibration and controlled baseline. Existing default reports stay score-equivalent; custom epsilon users may see corrected results.
 
 ## Decision 2026-11-10: reject invalid direct prompts before mutation
 

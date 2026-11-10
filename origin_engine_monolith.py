@@ -587,6 +587,15 @@ def test_non_reference(outputs: List[Dict], tau_max=DEFAULTS["tau_max"]) -> Test
     return TestResult("Non-Reference", round(score,3), {"tau_est": round(tau_est,3), "tau_max": tau_max})
 
 def test_dependency_bound(outputs: List[Dict], epsilon_max=DEFAULTS["epsilon_max"]) -> TestResult:
+    """Heuristic adjacent-output 3-gram overlap; not a statistical bound.
+
+    Preserve the historical 0.05 proxy allowance for the default ε=0.02,
+    while letting callers change the bound rather than silently ignoring it.
+    """
+    if (type(epsilon_max) not in (int, float) or
+            not math.isfinite(epsilon_max) or not 0.0 <= epsilon_max <= 1.0):
+        raise ValueError("epsilon_max must be a finite number from 0 to 1")
+    proxy_limit = 2.5 * epsilon_max
     def overlap(a,b,n=3):
         A = {a[i:i+n] for i in range(max(0,len(a)-n+1))}
         B = {b[i:i+n] for i in range(max(0,len(b)-n+1))}
@@ -594,9 +603,9 @@ def test_dependency_bound(outputs: List[Dict], epsilon_max=DEFAULTS["epsilon_max
     payloads = [o["payload"] for o in outputs]
     overlaps = [overlap(payloads[i-1], payloads[i]) for i in range(1,len(payloads))] if len(payloads)>1 else [0.0]
     est = max(overlaps) if overlaps else 0.0
-    passed = est <= 0.05  # strict toy proxy for ε≈0.02
-    score = 3.0 if passed else max(0.0, 3.0*(1.0 - (est - 0.05)))
-    return TestResult("Dependency-Bound", round(score,3), {"overlap_max": round(est,3), "target≈ε": 0.02})
+    passed = est <= proxy_limit
+    score = 3.0 if passed else max(0.0, 3.0*(1.0 - (est - proxy_limit)))
+    return TestResult("Dependency-Bound", round(score,3), {"overlap_max": round(est,3), "target≈ε": epsilon_max})
 
 # Graph checks
 def _graph_connectivity_ok(graph: dict) -> Tuple[bool, dict]:
