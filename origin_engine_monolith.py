@@ -483,7 +483,7 @@ class OriginEngine:
         if prompt is not None:
             if not isinstance(prompt, str) or not prompt.strip():
                 raise ValueError("conditioned prompt must be nonempty text")
-            digest = hashhex(b"OE prompt perturbation v1\\x00" + prompt.encode("utf-8"))
+            digest = hashhex(b"OE prompt perturbation v1\x00" + prompt.encode("utf-8"))
             effective_iota = Iota(
                 ident=hashhex((self.iota.ident + digest).encode("ascii"))[:16],
                 orbit=(self.iota.orbit + int(digest[:8], 16)) % 97,
