@@ -2,15 +2,23 @@
 
 ## Development summary
 
-**Goal:** reproducible symbolic generation with honest, complete graph exports and bounded-memory phase-shift evidence. Proposed v0.1.1 source candidate on Python 3.11/3.12; iPhone/Pythonista support unverified.
+**Goal:** Keep experimental seeded generation and its CLI honest: using a JSONL prompt pack currently does not condition any generated glyphs. Proposed v0.1.1 source candidate for CPython 3.11/3.12; Pythonista unverified.
 
-**Integration:** Strict graph JSON readback [PR #13](https://github.com/levelinglucy/Origin_Engine/pull/13) and seeded grammar ordering [PR #14](https://github.com/levelinglucy/Origin_Engine/pull/14) are merged. The pair-streaming change is separately proposed in [PR #15](https://github.com/levelinglucy/Origin_Engine/pull/15), **not merged until exact revision CI passes**.
+**Integration:** Bounded-memory phase comparisons [PR #15](https://github.com/levelinglucy/Origin_Engine/pull/15) are merged on main at `1de0c13f`. The opt-in prompt-pack notice is proposed separately in [PR #16](https://github.com/levelinglucy/Origin_Engine/pull/16); it is not integrated merely because its branch exists.
 
-**Validation:** Exact main `84d5776b` passed 33/33 tests on Python 3.11 and 3.12 ([CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42815671399)). Streaming test-first PR #15 revision `48cef85e` reproduced one memory-budget failure out of 34 tests on **each** Python version ([red CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42865335324)); its repaired candidate remains to be validated.
+**Validation:** Exact merged-main [PR #15 CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42865920127) passed 34/34 tests per Python 3.11/3.12. PR #16 has its own synthetic subprocess test for two different JSONL packs at one seed; final CI evidence belongs to that PR, not this summary.
 
-**Publication:** untagged, non-stable source candidate; no verified GitHub release. Hostile filesystem races, abrupt power failure, large-cycle runtime feasibility and iPhone/Pythonista remain unverified. **Next:** validate PR #15 after implementation, observe branch and PR gates, and merge only if current/allowed. Preserve the historical monolith and earlier complete exports.
+**Publication:** No verified stable tag/release. Prompt conditioning is **not implemented**, and iPhone/Pythonista, crash durability, full reproducibility across environments and other graph integrity assurances remain unverified. **Next:** validate the notice and no-pack control; only design real prompt-conditioned generation after an explicit semantics/compatibility experiment.
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
+
+## Decision 2026-11-10: disclose unused JSONL prompt content
+
+**Observed code path:** `--prompts` accepts and parses JSONL, but `run_prompts(engine, prompts, cycles=args.cycles)` only uses the cycle count, never the individual entries; `OriginEngine.cycle()` has no prompt argument. The CLI always passes a positive `--cycles` value (default 16). Therefore two different same-length, valid packs with identical `--seed` and `--cycles` generate the same output. Treating their text as conditioning would be a misleading claim.
+
+**Choice:** Keep the existing generator and historical monolith unchanged. When a pack is supplied and successfully parsed, emit a succinct stderr notice that the JSONL content is not used for conditioning, and clarify `--help` and README. The notice reveals no prompt text or file location; stdout, seed draws, phase and graph formats stay the same. New tests explicitly pin non-conditioning and the warning, without claiming the pack does anything it does not.
+
+**Alternatives and reconsideration:** Quietly ignoring data hides an important functional limitation; silently mixing text into P/C/Ψ would invent experimental semantics and invalidate seeded comparisons. A separately scoped milestone could define a conditional operator with tests for content sensitivity, repeatability, backward-compatible defaults and provenance. This patch is a disclosure, **not** prompt conditioning, scientific validation or iPhone certification. [PR #16](https://github.com/levelinglucy/Origin_Engine/pull/16) is the validation and integration record.
 
 ## Decision 2026-11-10: bound phase-shift scorecard's temporary memory
 
