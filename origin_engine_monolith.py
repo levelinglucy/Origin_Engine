@@ -806,7 +806,7 @@ def test_phase_shift(outputs: List[Dict]) -> TestResult:
         "targets_stricter": bool(stricter),
         "grammar_changed": bool(grammar_changed),
         "pre_grammar": pre_grammar,
-        "post_grammars": list(post_grammars),
+        "post_grammars": sorted(post_grammars),
         "alphabet_len_pre": pre_a_len,
         "alphabet_len_post_set": sorted(set(post_a_lens)),
         "alphabet_hash_changed": bool(hash_change),
