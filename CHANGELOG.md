@@ -2,7 +2,7 @@
 
 ## Unreleased — bounded-memory phase-shift comparison (2026-11-10)
 
-- Compute the same pre/post phase-shift mean in Cartesian iteration order **without storing all pair tuples**. A 500×500 synthetic report previously allocated about 16 MiB temporarily, before counting the source history.
+- Compute the same pre/post phase-shift mean in Cartesian iteration order **without storing all pair tuples**. A 500×500 synthetic report previously allocated about 15.3 MiB temporarily, before counting the source history.
 - Add a bounded allocation and unchanged score/grammar-order regression. Comparison time remains quadratic; no graph, generation, historical source or output schema changes.
 
 [Decision and limits](./DEV_NOTES.md#decision-2026-11-10-bound-phase-shift-scorecards-temporary-memory) · [PR #15](https://github.com/levelinglucy/Origin_Engine/pull/15). Unreleased source correction, not a device/cross-platform or large-cycle feasibility guarantee.
