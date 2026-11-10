@@ -827,7 +827,7 @@ def scorecard(results: List[TestResult]) -> Dict:
 def main():
     ap = argparse.ArgumentParser(description="Origin Engine — Monolith")
     ap.add_argument("--spec", default="", help="origin_engine_spec.json (optional)")
-    ap.add_argument("--prompts", default="", help="origin_engine_prompt_pack.jsonl (optional)")
+    ap.add_argument("--prompts", default="", help="JSONL pack (parsed but does not yet condition generation)")
     ap.add_argument("--cycles", type=int, default=16, help="number of Ψ cycles")
     ap.add_argument("--graph-format", choices=["json","graphml"], default="json", help="Φ⁴+ graph dump format")
     ap.add_argument("--dmin", type=float, default=DEFAULTS["d_min"], help="novelty target d_min baseline")
@@ -852,6 +852,9 @@ def main():
     eng.phase.graph_format = args.graph_format
 
     prompts = read_jsonl(args.prompts) if args.prompts else DEFAULT_PROMPTS
+    if args.prompts:
+        print("Notice: --prompts input is parsed but not used to condition generation; "
+              "--cycles determines emission count.", file=sys.stderr)
     outputs = run_prompts(eng, prompts, cycles=args.cycles)
 
     print("=== Ψ Emissions ===")

@@ -1,5 +1,10 @@
 # Origin Engine changelog
 
+## Unreleased — truthful prompt-pack CLI notice (2026-11-10)
+
+- Disclose that `--prompts` JSONL contents are currently parsed but not used in generation, instead of silently implying prompt-conditioned experiments. Preserve seeded stdout, output format, source history and existing defaults.
+- Add synthetic same-seed/different-pack and no-pack controls; update CLI help and README. This is not a prompt-conditioning feature or platform certification. [Decision](./DEV_NOTES.md#decision-2026-11-10-disclose-unused-jsonl-prompt-content) · [PR #16](https://github.com/levelinglucy/Origin_Engine/pull/16).
+
 ## Unreleased — bounded-memory phase-shift comparison (2026-11-10)
 
 - Compute the same pre/post phase-shift mean in Cartesian iteration order **without storing all pair tuples**. A 500×500 synthetic report previously allocated about 15.3 MiB temporarily, before counting the source history.
