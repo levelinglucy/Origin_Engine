@@ -769,10 +769,12 @@ def test_phase_shift(outputs: List[Dict]) -> TestResult:
     post_payloads = [outputs[i]["payload"] for i in range(k+1, len(outputs))]
 
     def avg_div(a_list, b_list):
-        import itertools
-        pairs = list(itertools.product(a_list, b_list))
-        if not pairs: return 0.0
-        return sum(norm_dist(a,b) for a,b in pairs)/len(pairs)
+        # Keep the original Cartesian order and mean, without retaining every
+        # pair in memory. CPU cost remains quadratic in the two input lengths.
+        if not a_list or not b_list:
+            return 0.0
+        return (sum(norm_dist(a, b) for a in a_list for b in b_list)
+                / (len(a_list) * len(b_list)))
     cross = avg_div(pre_payloads, post_payloads) if pre_payloads and post_payloads else 0.0
 
     pre_target = metas[k].get("target_d",0.0)
