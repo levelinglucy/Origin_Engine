@@ -2,13 +2,13 @@
 
 ## Development summary
 
-**Goal:** Experiment with opt-in deterministic prompt-text perturbation without changing previous seeded or unprompted runs. Proposed v0.1.1 source candidate for CPython 3.11/3.12; Pythonista unverified.
+**Goal:** Preserve seeded experimental comparability and refuse malformed opt-in prompt packs before any engine cycle. Proposed v0.1.1 source candidate for CPython 3.11/3.12; Pythonista unverified.
 
-**Integration:** The honest `--prompts` limitation notice [PR #16](https://github.com/levelinglucy/Origin_Engine/pull/16) is merged on main at `2ca95b64`. Exact-text opt-in generation is proposed separately in [PR #17](https://github.com/levelinglucy/Origin_Engine/pull/17); it is **not integrated** until merged.
+**Integration:** [PR #17](https://github.com/levelinglucy/Origin_Engine/pull/17) merged exact-text opt-in generation on main `33971c7b`. [PR #18](https://github.com/levelinglucy/Origin_Engine/pull/18) proposes UTF-8 preflight for all conditioned prompt entries; it is **not integrated** until merged.
 
-**Validation:** Exact merged-main [PR #16 CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42885544407) passed 35/35 tests per Python 3.11/3.12. PR #17 owns its test-first controls and candidate evidence; no new test success is assumed here.
+**Validation:** Exact merged-main [PR #17 CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42896313537) passed 38/38 tests per Python 3.11/3.12. PR #18 owns its independent surrogate regression and candidate CI; prior checks do not prove this new candidate passed.
 
-**Publication:** No verified stable tag/release. This is experimental hashed-text sensitivity, **not** semantic prompt understanding. iPhone/Pythonista, crash durability, cross-version reproducibility and stronger graph-integrity claims remain unverified. **Next:** validate PR #17's opt-in/opt-out contract; keep the historical monolith and default outputs unchanged.
+**Publication:** No verified stable tag/release. This is experimental hashed-text sensitivity, **not** semantic prompt understanding. iPhone/Pythonista, crash durability, cross-version reproducibility and stronger graph-integrity claims remain unverified. **Next:** verify PR #18 rejects late invalid pack entries before side effects while preserving valid Unicode, default paths and the historical monolith.
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
 

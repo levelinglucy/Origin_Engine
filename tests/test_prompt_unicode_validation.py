@@ -33,6 +33,21 @@ class PromptUnicodeValidationTests(unittest.TestCase):
             self.assertNotIn("=== Ψ Emissions ===", result.stdout)
             self.assertFalse((root / "oe_graphs").exists())
 
+    def test_valid_non_bmp_unicode_still_conditions(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            pack = root / "unicode.jsonl"
+            pack.write_text(json.dumps({"prompt": "café 💜"}) + "\n",
+                            encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(ENTRY), "--seed", "12", "--cycles", "2",
+                 "--prompts", str(pack), "--condition-prompts"],
+                cwd=str(root), capture_output=True, text=True, encoding="utf-8",
+                timeout=30, check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("=== Ψ Emissions ===", result.stdout)
+
     def test_api_validates_entire_pack_before_first_cycle(self):
         spec = importlib.util.spec_from_file_location("origin_prompt_unicode", ENTRY)
         mod = importlib.util.module_from_spec(spec)
