@@ -1,5 +1,12 @@
 # Origin Engine changelog
 
+## Unreleased — deterministic phase-shift report ordering (2026-11-10)
+
+- Sort post-transition grammar names in the phase-shift scorecard; identical seeded synthetic traces previously produced different name orders under different process hash seeds.
+- Add an isolated cross-process regression while preserving scores, emission order, graph formats, random sampling and the historical monolith. Previously stored scorecards may show another ordering for the same names.
+
+[Decision and limitations](./DEV_NOTES.md#decision-2026-11-10-stabilize-phase-shift-report-ordering) · [PR #14 evidence](https://github.com/levelinglucy/Origin_Engine/pull/14). Unreleased source correction, not device or durability certification.
+
 ## Unreleased — reject ambiguous graph JSON readback (2026-11-10)
 
 - Refuse duplicate keys at any nesting depth and nonstandard `NaN`/`Infinity` constants in saved JSON graph evidence rather than silently accepting a contradictory or invalid file as a perfect match.

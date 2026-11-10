@@ -4,13 +4,21 @@
 
 **Goal:** reproducible symbolic generation with honest, complete graph exports and evidence readback. Proposed v0.1.1 source candidate, validated on CPython 3.11/3.12 where recorded; iPhone/Pythonista remains unverified.
 
-**Integration:** Repeated-glyph graph identity repair [PR #12](https://github.com/levelinglucy/Origin_Engine/pull/12) is merged at `5cc58c50`. Strict saved-JSON evidence checking is proposed in [PR #13](https://github.com/levelinglucy/Origin_Engine/pull/13); consult that PR for its actual integration state and any subsequent merge.
+**Integration:** Strict JSON graph readback [PR #13](https://github.com/levelinglucy/Origin_Engine/pull/13) is merged on main `68266b6b`. Seeded scorecard ordering [PR #14](https://github.com/levelinglucy/Origin_Engine/pull/14) is proposed on a separate branch; consult the PR for actual integration state.
 
-**Validation:** [PR #12 exact merged-main CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42755702427) passed 30/30 tests and compilation on each of Python 3.11/3.12. PR #13 owns its separate test-first and exact-candidate evidence; older checks do not certify it.
+**Validation:** Previous [PR #13 merged-main CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42782828596) passed 32/32 and compilation on each of Python 3.11/3.12. A new synthetic test reproduces hash-seed-dependent phase report order on predecessor [PR #14 red CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42815290741); repaired revision must pass its own checks.
 
-**Release:** source remains untagged and unpublished as a stable release. Hostile filesystem races, abrupt power failure, and iPhone/Pythonista support remain unverified. **Next:** accept PR #13 only if its exact checks pass, then select another substantive portfolio milestone; avoid a status-only reconciliation commit.
+**Release:** source remains untagged and unpublished as a stable release. Hostile filesystem races, abrupt power failure, and iPhone/Pythonista support remain unverified. **Next:** verify PR #14 exact candidate on 3.11/3.12; merge only with passing relevant checks and branch protections, then select another substantive portfolio milestone.
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
+
+## Decision 2026-11-10: stabilize phase-shift report ordering
+
+**Confirmed predecessor:** `test_phase_shift` collected distinct post-transition grammar names in a set and returned `list(post_grammars)`. Identical synthetic phase traces, launched under process hash seeds 0 and 1, printed different name orders. The test-first case failed on both CPython 3.11/3.12 in [PR #14 red CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42815290741), while prior unrelated tests passed.
+
+**Choice:** Sort only the presented `post_grammars` list. Its membership, phase-shift score, underlying generated emissions, graph output, random sampling and CLI flags are unchanged. Alternative hash-dependent set order has no useful semantics and needlessly complicates comparing seeded scorecards.
+
+**Acceptance and limits:** A synthetic cross-process test asserts the exact stable, alphabetically ordered name list under distinct `PYTHONHASHSEED` values, and the entire existing suite must pass on supported CPython versions. Prior reports may differ only in this informational field's order. This does not claim that every printed field is canonical, certify seeded cross-version equivalence, or validate iPhone/Pythonista or durable writes. [PR #14](https://github.com/levelinglucy/Origin_Engine/pull/14) owns exact final candidate evidence.
 
 ## Decision 2026-11-10: refuse ambiguous saved graph JSON evidence
 
