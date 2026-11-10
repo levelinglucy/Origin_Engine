@@ -459,6 +459,16 @@ def Ψ(iota: Iota, history: List[str], phase: Phase, d_min: float=0.35, *, rng=N
 # ================================================================
 # Engine wrapper
 # ================================================================
+def _validated_conditioned_prompt_bytes(prompt: str) -> bytes:
+    """Validate a direct or packed prompt before mutable engine operations."""
+    if not isinstance(prompt, str) or not prompt.strip():
+        raise ValueError("--condition-prompts requires JSONL objects with nonempty string 'prompt'")
+    try:
+        return prompt.encode("utf-8")
+    except UnicodeEncodeError as exc:
+        raise ValueError("--condition-prompts refuses unpaired surrogate code points") from exc
+
+
 class OriginEngine:
     def __init__(self, kernel: Kernel|None=None, d_min: float=0.35, seed: int|None=None):
         self.kernel = kernel or Kernel()
@@ -470,6 +480,10 @@ class OriginEngine:
         self.phase = Phase()
 
     def cycle(self, prompt: str|None=None) -> Construct:
+        # Validation precedes P/U/C and any PRNG draw: invalid input must not
+        # alter this engine's Iota, phase, history or seeded replay position.
+        prompt_bytes = (None if prompt is None else
+                        _validated_conditioned_prompt_bytes(prompt))
         z = Z0()
         bot = P(z, self.kernel.A, rng=self._seed_rng)
         phi = S(bot)
@@ -480,10 +494,8 @@ class OriginEngine:
         # a cycle-local Iota from exact prompt UTF-8 bytes. The base Iota and
         # seeded random draws are untouched by this transformation.
         effective_iota = self.iota
-        if prompt is not None:
-            if not isinstance(prompt, str) or not prompt.strip():
-                raise ValueError("conditioned prompt must be nonempty text")
-            digest = hashhex(b"OE prompt perturbation v1\x00" + prompt.encode("utf-8"))
+        if prompt_bytes is not None:
+            digest = hashhex(b"OE prompt perturbation v1\x00" + prompt_bytes)
             effective_iota = Iota(
                 ident=hashhex((self.iota.ident + digest).encode("ascii"))[:16],
                 orbit=(self.iota.orbit + int(digest[:8], 16)) % 97,
@@ -528,19 +540,11 @@ def run_prompts(engine: OriginEngine, prompts: Iterable[Dict], cycles: int|None=
     if condition_prompts:
         prompt_texts = []
         for item in prompts:
-            if (not isinstance(item, dict) or
-                    not isinstance(item.get("prompt"), str) or
-                    not item["prompt"].strip()):
+            if not isinstance(item, dict):
                 raise ValueError("--condition-prompts requires JSONL objects with nonempty string 'prompt'")
-            # JSON permits escaped unpaired surrogates, but UTF-8 encoding in
-            # cycle() cannot represent them. Validate the *entire* pack before
-            # any engine cycle or graph export can run.
-            try:
-                item["prompt"].encode("utf-8")
-            except UnicodeEncodeError as exc:
-                raise ValueError(
-                    "--condition-prompts refuses unpaired surrogate code points"
-                ) from exc
+            # Preflight the *entire* pack before generation, while the direct
+            # cycle API independently guards its own mutation boundary.
+            _validated_conditioned_prompt_bytes(item.get("prompt"))
             prompt_texts.append(item["prompt"])
         if not prompt_texts:
             raise ValueError("--condition-prompts requires at least one prompt")
