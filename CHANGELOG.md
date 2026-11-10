@@ -1,5 +1,10 @@
 # Origin Engine changelog
 
+## Unreleased — direct API prompt validation before state changes (2026-11-10)
+
+- Refuse invalid direct `OriginEngine.cycle(prompt=...)` inputs before PRNG draws or Iota mutation; share UTF-8 validation with the conditioned-pack preflight. A rejected direct request no longer changes the next seeded emission.
+- Preserve valid Unicode, opt-out runs, prompt digest semantics, historical source and all existing output formats. No transactional rollback for errors later in valid cycles. [Decision](./DEV_NOTES.md#decision-2026-11-10-reject-invalid-direct-prompts-before-mutation) · [PR #19](https://github.com/levelinglucy/Origin_Engine/pull/19).
+
 ## Unreleased — conditioned prompt Unicode preflight (2026-11-10)
 
 - Validate every opt-in JSONL prompt for UTF-8 representability before the first generation cycle. Refuse escaped unpaired surrogates instead of failing after partial work; preserve valid Unicode, unconditioned runs and the existing output format. [PR #18](https://github.com/levelinglucy/Origin_Engine/pull/18).
