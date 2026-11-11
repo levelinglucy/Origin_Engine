@@ -2,15 +2,25 @@
 
 ## Development summary
 
-**Goal:** Make optional external `--spec` and `--prompts` files predictable CLI inputs: a missing, corrupt or non-UTF-8 file should report a useful exit-2 error before generation. Preserve valid input behaviour, the original monolith, seeded glyphs and exports. Proposed `v0.1.1` remains an experimental CPython 3.11/3.12 source candidate.
+**Goal (M22):** prevent contradictory external JSON from being silently accepted. Optional `--spec` and `--prompts` inputs currently use Python's permissive JSON decoder, which keeps the last duplicate key and accepts nonstandard `NaN`/`Infinity`. Target: the next unreleased `v0.1.1` source slice, retaining the historical monolith, valid pipeline and opt-in prompt behaviour.
 
-**Integration:** The earlier dependency-scorecard correction [PR #20](https://github.com/levelinglucy/Origin_Engine/pull/20) is merged at main `ed1ef32b8`. External-input repair [PR #21](https://github.com/levelinglucy/Origin_Engine/pull/21) is a reviewable candidate, not yet integrated.
+**Integration:** [Origin Engine PR #22](https://github.com/levelinglucy/Origin_Engine/pull/22) owns the candidate and its revision-specific checks. The previous [PR #21](https://github.com/levelinglucy/Origin_Engine/pull/21) is merged at `88a955df`.
 
-**Validation:** [PR #20 main CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42923733198) passed 45/45 per Python version on its exact merged revision. PR #21 separately owns its test-first failure and final-revision validation evidence. One project's passing tests do not validate another revision.
+**Validation:** synthetic duplicate-key and nonstandard-constant cases at top level and nested fields, in both conditioned and unconditioned JSONL; full hosted Python 3.11/3.12 suite and normal valid-input compatibility. Do not infer success from queued tests. **Publication:** no verified stable release; Pythonista and crash durability unverified.
 
-**Publication:** No verified stable tag or release. Experimental metrics are not a scientific independence guarantee; iPhone/Pythonista, crash durability and graph hard-link availability remain unverified. **Next:** validate PR #21 on the exact candidate and promote only with passing checks and current base.
+**Next:** inspect test-first and final candidate results; integrate only if the exact candidate is validated and branch current. Further optional spec schema design requires a concrete consumer problem; avoid broad cosmetic audits.
+
+**Limits:** strict JSON syntax does not authenticate file provenance, validate every unused spec field, bound input file size or guarantee transactionality for later generation. The default prompt-pack remains parsed but nonconditioning.
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
+
+## Decision 2026-11-11: reject ambiguous external JSON before generation
+
+**Observed predecessor:** `load_spec` and `read_jsonl` use ordinary `json.load(s)`, which picks the last value for a duplicate key, including a `pipeline` or `prompt`, and accepts Python-only constants `NaN` and `Infinity`. The caller could receive a successful report for contradictory or nonstandard input. This is a deterministic synthetic code-path issue, not evidence of an actual owner data incident.
+
+**Choice:** use shared `object_pairs_hook` and `parse_constant` checks at both external decoding boundaries, without changing Python's JSON output formats or the graph readback parser. Reject every duplicate key, including nested fields that the engine might otherwise ignore, and refuse nonstandard numeric constants. The existing CLI exception handling should emit an option-specific error and status 2 before constructing an engine.
+
+**Alternatives and trade-offs:** leave last-key-wins as an undocumented parser convenience (misleading), or normalize ambiguous inputs after decoding (discarded values cannot be recovered). Strict refusal may reject previously tolerated nonconforming packs; authors must fix or regenerate those files. Whitespace, ordering, valid Unicode and standard JSON retain their meaning. This does not add semantic conditioning, integrity signatures, schema validation or power-loss protection. PR #22 owns the actual tests and validation evidence.
 
 ## Decision 2026-11-11: fail cleanly for invalid external JSON inputs
 
