@@ -1,5 +1,10 @@
 # Origin Engine changelog
 
+## Unreleased — refuse ambiguous external JSON (2026-11-11)
+
+- Reject repeated keys at any object depth and nonstandard `NaN`/`Infinity` tokens in optional `--spec` and `--prompts` inputs; stop before any generation with an option-specific exit-2 error, instead of silently accepting conflicting values.
+- Keep valid JSON/JSONL, seed behaviour, exports and the original monolith unchanged. Previously tolerated nonconforming files need correction. Synthetic regressions and rationale: [PR #22](https://github.com/levelinglucy/Origin_Engine/pull/22) and [decision](./DEV_NOTES.md#decision-2026-11-11-reject-ambiguous-external-json-before-generation).
+
 ## Unreleased — clean failures for external JSON files (2026-11-11)
 
 - Return a clear `--spec` or `--prompts` CLI usage error (exit 2, no traceback or generated graph) when the input file is missing, invalid JSON/JSONL or non-UTF-8; also refuse non-object JSON spec roots.

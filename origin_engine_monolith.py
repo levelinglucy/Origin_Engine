@@ -101,10 +101,28 @@ class OESpec:
     tests: Dict[str, List[str]]
     safety_alignment: Dict[str,str]
 
+def _reject_external_duplicate_keys(pairs):
+    """Refuse conflicting JSON keys, including keys nested in unused fields."""
+    record = {}
+    for key, value in pairs:
+        if key in record:
+            raise ValueError(f"duplicate external JSON key: {key!r}")
+        record[key] = value
+    return record
+
+
+def _reject_external_nonstandard_constant(token):
+    """Python accepts NaN/Infinity by default, but JSON does not."""
+    raise ValueError(f"nonstandard external JSON constant: {token}")
+
+
 def load_spec(path: str) -> Optional[OESpec]:
     if not path: return None
     with open(path, "r", encoding="utf-8") as f:
-        j = json.load(f)
+        j = json.load(
+            f, object_pairs_hook=_reject_external_duplicate_keys,
+            parse_constant=_reject_external_nonstandard_constant,
+        )
     if not isinstance(j, dict):
         raise ValueError("spec must contain a JSON object")
     return OESpec(
@@ -129,7 +147,10 @@ def read_jsonl(path: str) -> List[Dict]:
         for line in f:
             line = line.strip()
             if not line: continue
-            items.append(json.loads(line))
+            items.append(json.loads(
+                line, object_pairs_hook=_reject_external_duplicate_keys,
+                parse_constant=_reject_external_nonstandard_constant,
+            ))
     return items
 
 # ================================================================
