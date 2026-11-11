@@ -2,15 +2,23 @@
 
 ## Development summary
 
-**Goal:** Make Origin Engine's dependency-bound scorecard honor the epsilon parameter without changing default seeded scoring or glyph generation; proposed v0.1.1 source remains experimental on CPython 3.11/3.12, with Pythonista unverified.
+**Goal:** Make optional external `--spec` and `--prompts` files predictable CLI inputs: a missing, corrupt or non-UTF-8 file should report a useful exit-2 error before generation. Preserve valid input behaviour, the original monolith, seeded glyphs and exports. Proposed `v0.1.1` remains an experimental CPython 3.11/3.12 source candidate.
 
-**Integration:** Direct prompt preflight [PR #19](https://github.com/levelinglucy/Origin_Engine/pull/19) is merged at main `90b021cd`. The dependency-bound correction is reviewable [PR #20](https://github.com/levelinglucy/Origin_Engine/pull/20), not integrated solely because a branch exists.
+**Integration:** The earlier dependency-scorecard correction [PR #20](https://github.com/levelinglucy/Origin_Engine/pull/20) is merged at main `ed1ef32b8`. External-input repair [PR #21](https://github.com/levelinglucy/Origin_Engine/pull/21) is a reviewable candidate, not yet integrated.
 
-**Validation:** Historical [PR #19 CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42914833261) tested 43/43 per Python 3.11/3.12 on its exact main. PR #20's new tests and revision-specific checks must be evaluated separately before any merge.
+**Validation:** [PR #20 main CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/42923733198) passed 45/45 per Python version on its exact merged revision. PR #21 separately owns its test-first failure and final-revision validation evidence. One project's passing tests do not validate another revision.
 
-**Publication:** No verified stable release/tag. The dependency metric is heuristic, not a statistical independence proof; iPhone/Pythonista and crash durability remain unverified. **Next:** complete the synthetic epsilon contract, observe PR checks on the final branch, and only merge when relevant checks are passing.
+**Publication:** No verified stable tag or release. Experimental metrics are not a scientific independence guarantee; iPhone/Pythonista, crash durability and graph hard-link availability remain unverified. **Next:** validate PR #21 on the exact candidate and promote only with passing checks and current base.
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
+
+## Decision 2026-11-11: fail cleanly for invalid external JSON inputs
+
+**Observed predecessor:** Optional `--spec` and `--prompts` files were opened and decoded outside the CLI's exception handling. Missing files, malformed JSON/JSONL or invalid UTF-8 escaped as Python tracebacks and exit code 1; a spec with a JSON array as its root raised an `AttributeError`. The synthetic test-first [PR #21](https://github.com/levelinglucy/Origin_Engine/pull/21) demonstrates seven failing cases on each hosted Python version, while a valid spec and opt-in prompt pack still work.
+
+**Choice:** Require the spec JSON root to be an object, and catch file, decoding and JSON/value errors for each optional input at the CLI boundary. Report the offending option through `argparse.error` (exit 2) before creating an engine or generating output; keep the historical invalid-pipeline explanation and the valid prompt semantics unchanged. Preserve unmodified historical source and already accepted JSON formats.
+
+**Trade-off and limits:** This is error reporting, not a security sandbox, validation of every optional spec field, strict duplicate-key JSON policy, an output transaction or protection against faults during later generation. Unconditioned JSONL contents are still parsed without influencing glyphs. Revisit input-schema tightening only for a concrete ambiguous-input use case. Candidate revision-specific validation remains in PR #21.
 
 ## Decision 2026-11-10: respect the dependency-bound scorer's epsilon argument
 

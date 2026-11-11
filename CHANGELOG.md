@@ -1,5 +1,10 @@
 # Origin Engine changelog
 
+## Unreleased — clean failures for external JSON files (2026-11-11)
+
+- Return a clear `--spec` or `--prompts` CLI usage error (exit 2, no traceback or generated graph) when the input file is missing, invalid JSON/JSONL or non-UTF-8; also refuse non-object JSON spec roots.
+- Preserve valid specs, prompt conditioning, seeded output, exports and the untouched historical monolith. Synthetic subprocess regressions cover malformed inputs and a valid-input control. [Decision](./DEV_NOTES.md#decision-2026-11-11-fail-cleanly-for-invalid-external-json-inputs) · [PR #21](https://github.com/levelinglucy/Origin_Engine/pull/21).
+
 ## Unreleased — configurable dependency-bound scorecard (2026-11-10)
 
 - Honor an explicit `epsilon_max` in the adjacent-output 3-gram overlap score and report that requested target, rather than silently applying fixed 0.05/0.02 values. Retain the historical default by keeping its heuristic allowance at `2.5 × epsilon_max`.
