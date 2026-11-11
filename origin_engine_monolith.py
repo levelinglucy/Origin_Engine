@@ -105,6 +105,8 @@ def load_spec(path: str) -> Optional[OESpec]:
     if not path: return None
     with open(path, "r", encoding="utf-8") as f:
         j = json.load(f)
+    if not isinstance(j, dict):
+        raise ValueError("spec must contain a JSON object")
     return OESpec(
         engine_name=j.get("engine_name","OriginEngine"),
         pipeline=j.get("pipeline", []),
@@ -897,17 +899,25 @@ def main():
     if args.condition_prompts and not args.prompts:
         ap.error("--condition-prompts requires --prompts JSONL path")
 
-    # Use external files if provided; otherwise fall back to built-in defaults
-    spec = load_spec(args.spec) if args.spec else OESpec(**DEFAULT_SPEC)
+    # External inputs must fail as CLI usage errors, not unhandled tracebacks.
+    # Read everything before constructing the engine or generating any output.
+    try:
+        spec = load_spec(args.spec) if args.spec else OESpec(**DEFAULT_SPEC)
+    except (OSError, UnicodeError, ValueError) as exc:
+        ap.error(f"--spec could not be loaded: {exc}")
     errs = validate_pipeline(spec)
     if errs:
         print("Spec validation errors:", *[f"- {e}" for e in errs], sep="\n")
         sys.exit(2)
 
+    try:
+        prompts = read_jsonl(args.prompts) if args.prompts else DEFAULT_PROMPTS
+    except (OSError, UnicodeError, ValueError) as exc:
+        ap.error(f"--prompts could not be loaded: {exc}")
+
     eng = OriginEngine(d_min=args.dmin, seed=args.seed)
     eng.phase.graph_format = args.graph_format
 
-    prompts = read_jsonl(args.prompts) if args.prompts else DEFAULT_PROMPTS
     if args.prompts and not args.condition_prompts:
         print("Notice: --prompts input is parsed but not used to condition generation; "
               "--cycles determines emission count.", file=sys.stderr)
