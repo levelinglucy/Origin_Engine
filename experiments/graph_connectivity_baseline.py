@@ -13,6 +13,7 @@ Usage: python3 experiments/graph_connectivity_baseline.py
 
 import json
 from collections import Counter
+from math import comb
 
 NODES = 5
 EDGES = tuple((u, v) for u in range(NODES) for v in range(u + 1, NODES))
@@ -84,7 +85,69 @@ def spanning_tree_control():
             'ideal_mean_edges': edge_total / 64}
 
 
+def density_and_rejection_contrast():
+    """Exact edge-count stratification; no changes to the stochastic engine.
+
+    Rejection sampling a *whole disconnected candidate* would retain the
+    fair-edge law conditional on connectivity, unlike forcing a specific tree.
+    It would still change RNG consumption, output distribution and replay.
+    A simple minimum-edge cutoff is not a connectivity guarantee until seven
+    of the ten possible edges are present on five vertices.
+    """
+    rows = []
+    for edge_count in range(len(EDGES) + 1):
+        total = connected_count = no_isolate_false_positives = 0
+        for mask in range(1 << len(EDGES)):
+            if mask.bit_count() != edge_count:
+                continue
+            total += 1
+            is_connected, has_isolate = connected(mask)
+            connected_count += is_connected
+            no_isolate_false_positives += not is_connected and not has_isolate
+        assert total == comb(len(EDGES), edge_count)
+        rows.append({'edges': edge_count, 'total': total,
+                     'connected': connected_count,
+                     'disconnected_without_isolate': no_isolate_false_positives})
+
+    # Known exact counts guard against accidental changes to the model.
+    assert [row['connected'] for row in rows] == [0, 0, 0, 0, 125, 222, 205, 120, 45, 10, 1]
+    assert sum(row['disconnected_without_isolate'] for row in rows) == 40
+    connected_total = sum(row['connected'] for row in rows)
+    accepted_edges = sum(row['edges'] * row['connected'] for row in rows)
+    assert connected_total == 728 and accepted_edges == 4140
+
+    # Filter a fair *whole graph*, not an individual edge, and repeat on rejection.
+    # This preserves the conditional probability of each connected mask but
+    # does not preserve seed draws or the unconditioned original distribution.
+    threshold_screens = []
+    for minimum in (4, 5, 6, 7):
+        selected = rows[minimum:]
+        eligible = sum(row['total'] for row in selected)
+        connected_eligible = sum(row['connected'] for row in selected)
+        threshold_screens.append({
+            'minimum_edges': minimum,
+            'eligible_masks': eligible,
+            'connected_masks': connected_eligible,
+            'disconnected_masks_still_eligible': eligible - connected_eligible,
+        })
+    assert threshold_screens[-1] == {
+        'minimum_edges': 7, 'eligible_masks': 176,
+        'connected_masks': 176, 'disconnected_masks_still_eligible': 0,
+    }
+    return {
+        'connected_by_edge_count': rows,
+        'connected_only_rejection_control': {
+            'accepted_masks': connected_total,
+            'rejected_masks': (1 << len(EDGES)) - connected_total,
+            'ideal_expected_candidate_draws': (1 << len(EDGES)) / connected_total,
+            'ideal_mean_edges_if_accepted': accepted_edges / connected_total,
+        },
+        'minimum_edge_screens': threshold_screens,
+    }
+
+
 if __name__ == '__main__':
     print(json.dumps({'raw_edge_baseline': baseline(),
-                      'forced_tree_contrast': spanning_tree_control()},
+                      'forced_tree_contrast': spanning_tree_control(),
+                      'density_and_rejection_contrast': density_and_rejection_contrast()},
                      indent=2, sort_keys=True))
