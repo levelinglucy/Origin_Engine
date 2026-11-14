@@ -54,6 +54,8 @@ def run_probe():
         assert initial_dump.call_count == 1
     stats = {"first": Counter(), "best_of_14": Counter()}
     examples = []
+    transitions = Counter()
+    score_improvements = 0
     with patch.object(oe, "_dump_graph_file", return_value="<not-written>") as dump:
         for seed in range(64):
             runs = []
@@ -69,6 +71,11 @@ def run_probe():
                 stats[name]["edges"] += len(graph["edges"])
                 runs.append(candidate)
             assert runs[1].meta["novelty_score"] >= runs[0].meta["novelty_score"]
+            from_connected = is_connected(runs[0].meta["graph"])
+            to_connected = is_connected(runs[1].meta["graph"])
+            transitions[f"{int(from_connected)}->{int(to_connected)}"] += 1
+            score_improvements += (runs[1].meta["novelty_score"]
+                                   > runs[0].meta["novelty_score"])
             if runs[1].meta["graph"] != runs[0].meta["graph"]:
                 examples.append(seed)
         assert dump.call_count == 128  # 64 paired output choices
@@ -77,6 +84,8 @@ def run_probe():
             "first": dict(stats["first"]), "best_of_14": dict(stats["best_of_14"]),
             "changed_selected_graph_seeds": len(examples),
             "changed_seed_examples": examples[:12],
+            "paired_connectivity_transitions": dict(transitions),
+            "strict_novelty_score_improvement_seeds": score_improvements,
             "scope": "fixed synthetic one-entry history, forced phase 4, in-memory exports"}
 
 
