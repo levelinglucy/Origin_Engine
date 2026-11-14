@@ -2,13 +2,13 @@
 
 ## Development summary
 
-**Current candidate:** [PR #25](https://github.com/levelinglucy/Origin_Engine/pull/25) is a draft direct-Python-API correctness repair. `OriginEngine(d_min=NaN)` could skip all Ψ candidates, append `None` to history and make later calls fail. The constructor now rejects invalid targets before it creates engine state. CLI flags, valid seeded streams, graph formats and the preserved historical source are unchanged.
+**Recent correctness repair:** [PR #25](https://github.com/levelinglucy/Origin_Engine/pull/25) guards the direct Python API's novelty target. `OriginEngine(d_min=NaN)` could skip all Ψ candidates, append `None` to history and make later calls fail. The constructor now refuses invalid targets before allocating engine state, without changing valid seeded streams, CLI flags, graph formats or the historical source.
 
-**Integration:** proposed in draft PR #25, not merged. [PR #24](https://github.com/levelinglucy/Origin_Engine/pull/24) **was merged** into main at `b45ecd5b`; its simple-undirected duplicate-edge scorecard repair remains intact. [PR #23](https://github.com/levelinglucy/Origin_Engine/pull/23) remains an independent, unmerged connectivity research draft without generator changes.
+**Integration:** PR #25 is the canonical change record; check its current merge status before claiming integration. [PR #24](https://github.com/levelinglucy/Origin_Engine/pull/24) was merged into main at `b45ecd5b`; its simple-undirected edge validation is independent. [PR #23](https://github.com/levelinglucy/Origin_Engine/pull/23) remains an unmerged research draft without generator changes.
 
-**Validation:** test-first `d909c744` failed eight expected invalid-target subcases out of 54 tests per Python 3.11 and 3.12 in [red CI 43647873667](https://github.com/levelinglucy/Origin_Engine/actions/runs/43647873667); valid-target replay controls passed. Candidate source fix `8d4d840` is awaiting final exact-head verification and review. **Release:** no new tag or client/device/power-loss certification.
+**Validation:** test-first `d909c744` failed eight expected invalid-target subcases out of 54 tests per Python 3.11/3.12 in [red CI 43647873667](https://github.com/levelinglucy/Origin_Engine/actions/runs/43647873667); valid-target replay controls passed. Source-and-test revision `8d4d840` and documented candidate `a0f9d628` passed **54/54 per Python 3.11 and 3.12** ([final pre-merge CI 43647966918](https://github.com/levelinglucy/Origin_Engine/actions/runs/43647966918)); both job logs inspected. Candidate validation is not merged-main validation. **Release:** no verified new tag, client/device or power-loss certification.
 
-**Next:** verify new direct-constructor regressions and full matrix at the final documented PR head; then review compatibility and possible integration. Do not change the phase-four graph generator merely to force connectivity.
+**Next:** inspect PR #25's live status and exact main tests if integrated. Keep PR #23's connectivity research separate, and do not force graph connectivity without a use case.
 
 **Limits:** Direct construction argument validation is not a global state transaction. Later mutation of `engine.d_min`, callback failures and filesystem crashes remain outside this fix. Scorecards are structural and experimental proxies, not scientific guarantees.
 
