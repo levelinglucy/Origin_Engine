@@ -1,5 +1,10 @@
 # Origin Engine changelog
 
+## Unreleased — truthful simple-graph diagnostics (2026-11-14)
+
+- The graph scorecard now refuses parallel undirected pairs, including reversed repeats, rather than crediting malformed five-vertex graph records as valid simple graphs.
+- Existing generated Φ⁴ candidates already sample each pair only once; generator, PRNG draws, graph files and legitimate simple-graph scores are unchanged. Synthetic red regression and validation scope: [PR #24](https://github.com/levelinglucy/Origin_Engine/pull/24) and [decision](./DEV_NOTES.md#decision-2026-11-14-reject-parallel-undirected-edges-in-the-graph-scorecard).
+
 ## Unreleased — refuse ambiguous external JSON (2026-11-11)
 
 - Reject repeated keys at any object depth and nonstandard `NaN`/`Infinity` tokens in optional `--spec` and `--prompts` inputs; stop before any generation with an option-specific exit-2 error, instead of silently accepting conflicting values.
