@@ -2,17 +2,25 @@
 
 ## Development summary
 
-**Current candidate:** [PR #24](https://github.com/levelinglucy/Origin_Engine/pull/24) (draft) corrects the graph output scorecard's simple-undirected-edge validation. The current generated five-vertex Φ⁴ graphs already draw each pair only once; this changes only the diagnostic verdict for malformed synthetic or programmatic graph records.
+**Current candidate:** [PR #25](https://github.com/levelinglucy/Origin_Engine/pull/25) is a draft direct-Python-API correctness repair. `OriginEngine(d_min=NaN)` could skip all Ψ candidates, append `None` to history and make later calls fail. The constructor now rejects invalid targets before it creates engine state. CLI flags, valid seeded streams, graph formats and the preserved historical source are unchanged.
 
-**Integration:** not merged; no generated-glyph, graph export, random stream, CLI or on-disk format changes. The earlier strict external JSON [PR #22](https://github.com/levelinglucy/Origin_Engine/pull/22) was merged at `1094c845`, with its exact-revision checks preserved in its PR.
+**Integration:** proposed in draft PR #25, not merged. [PR #24](https://github.com/levelinglucy/Origin_Engine/pull/24) **was merged** into main at `b45ecd5b`; its simple-undirected duplicate-edge scorecard repair remains intact. [PR #23](https://github.com/levelinglucy/Origin_Engine/pull/23) remains an independent, unmerged connectivity research draft without generator changes.
 
-**Validation:** Test-first commit `2c6eb786` reproduced two failures (same and reversed duplicate) among 52 tests on each of hosted Python 3.11/3.12 ([red CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/43632086381)); the good simple-path control passed. Validate and inspect full regression logs on the **final** PR head before integration. **Release:** no verified new publication, live runtime/client/platform test or independent scientific graph guarantee.
+**Validation:** test-first `d909c744` failed eight expected invalid-target subcases out of 54 tests per Python 3.11 and 3.12 in [red CI 43647873667](https://github.com/levelinglucy/Origin_Engine/actions/runs/43647873667); valid-target replay controls passed. Candidate source fix `8d4d840` is awaiting final exact-head verification and review. **Release:** no new tag or client/device/power-loss certification.
 
-**Next:** require the duplicate pair refusal and existing graph export/phase tests to pass together; then decide low-risk integration after rechecking the head and checks. Keep the [separate connectivity baseline PR #23](https://github.com/levelinglucy/Origin_Engine/pull/23) as draft research without changing the production generator.
+**Next:** verify new direct-constructor regressions and full matrix at the final documented PR head; then review compatibility and possible integration. Do not change the phase-four graph generator merely to force connectivity.
 
-**Limits:** Graph-Output is a structural toy scorecard, not a proof of authenticity or a guarantee of connectivity for every actual emitted random graph. Filesystem crash durability, device support, independent sampler distribution and live usage are not certified.
+**Limits:** Direct construction argument validation is not a global state transaction. Later mutation of `engine.d_min`, callback failures and filesystem crashes remain outside this fix. Scorecards are structural and experimental proxies, not scientific guarantees.
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
+
+## Decision 2026-11-14: preflight direct Python novelty thresholds
+
+**Observed predecessor:** Unlike the CLI, the Python `OriginEngine` constructor stored any `d_min` value. NaN makes the first novelty-loop comparison false, leaving `best=None`; a subsequent cycle can then process a non-string history item. Negative or infinite values select misleading candidate-search behaviour, and Booleans are technically numbers in Python but not meaningful thresholds. This is a reproducible source-level API defect, not an observed customer incident. The original constructor accepted every test's invalid argument in the hosted red test.
+
+**Choice:** Require an exact built-in int or float, a nonnegative value and finite real magnitude; handle huge ints that overflow `math.isfinite` conversion as invalid. Validate before `Kernel`, `Phase` and random state initialization. Accept `d_min=0`, default 0.35, and values above 1 exactly as before, preserving the old novelty algorithm and seeded output for valid callers. `ValueError` mentions `d_min` for immediate diagnosis. Avoid constraining upper bounds or silently coalescing arbitrary objects.
+
+**Trade-offs and revisit:** Direct callers relying on inappropriate Boolean, text, huge-int or nonfinite targets will now receive an explicit error. The CLI already rejected negative and nonfinite values. This does not prevent external code mutating `engine.d_min` later; enforce a stronger immutable configuration contract only after establishing a concrete need. Hosted red/final CI and review evidence belong in PR #25.
 
 ## Decision 2026-11-14: reject parallel undirected edges in the graph scorecard
 
