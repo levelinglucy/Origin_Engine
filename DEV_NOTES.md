@@ -2,17 +2,25 @@
 
 ## Development summary
 
-**Goal (M22):** prevent contradictory external JSON from being silently accepted. Optional `--spec` and `--prompts` inputs currently use Python's permissive JSON decoder, which keeps the last duplicate key and accepts nonstandard `NaN`/`Infinity`. Target: the next unreleased `v0.1.1` source slice, retaining the historical monolith, valid pipeline and opt-in prompt behaviour.
+**Current candidate:** [PR #24](https://github.com/levelinglucy/Origin_Engine/pull/24) (draft) corrects the graph output scorecard's simple-undirected-edge validation. The current generated five-vertex Φ⁴ graphs already draw each pair only once; this changes only the diagnostic verdict for malformed synthetic or programmatic graph records.
 
-**Integration:** [Origin Engine PR #22](https://github.com/levelinglucy/Origin_Engine/pull/22) owns the candidate and its revision-specific checks. The previous [PR #21](https://github.com/levelinglucy/Origin_Engine/pull/21) is merged at `88a955df`.
+**Integration:** not merged; no generated-glyph, graph export, random stream, CLI or on-disk format changes. The earlier strict external JSON [PR #22](https://github.com/levelinglucy/Origin_Engine/pull/22) was merged at `1094c845`, with its exact-revision checks preserved in its PR.
 
-**Validation:** synthetic duplicate-key and nonstandard-constant cases at top level and nested fields, in both conditioned and unconditioned JSONL; full hosted Python 3.11/3.12 suite and normal valid-input compatibility. Do not infer success from queued tests. **Publication:** no verified stable release; Pythonista and crash durability unverified.
+**Validation:** Test-first commit `2c6eb786` reproduced two failures (same and reversed duplicate) among 52 tests on each of hosted Python 3.11/3.12 ([red CI](https://github.com/levelinglucy/Origin_Engine/actions/runs/43632086381)); the good simple-path control passed. Validate and inspect full regression logs on the **final** PR head before integration. **Release:** no verified new publication, live runtime/client/platform test or independent scientific graph guarantee.
 
-**Next:** inspect test-first and final candidate results; integrate only if the exact candidate is validated and branch current. Further optional spec schema design requires a concrete consumer problem; avoid broad cosmetic audits.
+**Next:** require the duplicate pair refusal and existing graph export/phase tests to pass together; then decide low-risk integration after rechecking the head and checks. Keep the [separate connectivity baseline PR #23](https://github.com/levelinglucy/Origin_Engine/pull/23) as draft research without changing the production generator.
 
-**Limits:** strict JSON syntax does not authenticate file provenance, validate every unused spec field, bound input file size or guarantee transactionality for later generation. The default prompt-pack remains parsed but nonconditioning.
+**Limits:** Graph-Output is a structural toy scorecard, not a proof of authenticity or a guarantee of connectivity for every actual emitted random graph. Filesystem crash durability, device support, independent sampler distribution and live usage are not certified.
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
+
+## Decision 2026-11-14: reject parallel undirected edges in the graph scorecard
+
+**Confirmed predecessor:** `_graph_connectivity_ok` accepted a five-node connected path plus a repeated edge as `{'nodes': 5, 'edges': 5}`, whether the second copy was ordered 0→1 or reversed 1→0. The source generator considers each unordered pair exactly once, so these inputs are malformed under its simple-graph contract. The scorecard otherwise gave them full Graph-Output credit. Synthetic red tests `2c6eb786` failed twice on hosted Python 3.11 and 3.12. No real user data incident was observed.
+
+**Choice:** canonicalize each endpoint pair for duplicate detection after existing type, endpoint and self-loop checks; refuse a repeated pair with `duplicate_undirected_edge`. Preserve the original endpoint orientation in the graph and do not modify the generator. Rejecting duplicates in the diagnostic is more truthful than silently interpreting repeated records as additional independent edges. This also avoids inventing a multigraph format or deduplicating malformed evidence.
+
+**Trade-offs:** This check deliberately treats repeated records as invalid rather than harmless redundant serialization. GraphML/JSON readback equivalence still judges file/sidecar equality separately, not structure; use Graph-Output to check the generated graph's structural contract. This does not enforce graph connectivity in the generator, prove graph source integrity, bound arbitrary user-supplied graph sizes, or change seeded outputs. Evidence for the corrected candidate belongs in PR #24.
 
 ## Decision 2026-11-11: reject ambiguous external JSON before generation
 

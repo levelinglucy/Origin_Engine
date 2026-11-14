@@ -647,6 +647,7 @@ def _graph_connectivity_ok(graph: dict) -> Tuple[bool, dict]:
     if ids != set(range(len(nodes))):
         return False, {"reason": "node ids not contiguous 0..N-1"}
     E = []
+    seen_pairs = set()
     for e in edges:
         if not isinstance(e, dict): 
             return False, {"reason": "edge not dict"}
@@ -657,6 +658,12 @@ def _graph_connectivity_ok(graph: dict) -> Tuple[bool, dict]:
             return False, {"reason": "edge references unknown node"}
         if s == t:
             return False, {"reason": "self-loop not allowed in this test"}
+        # Φ⁴ emits a simple undirected graph, not a multigraph. A reversed
+        # endpoint pair is the same edge and must not inflate the scorecard.
+        pair = (min(s, t), max(s, t))
+        if pair in seen_pairs:
+            return False, {"reason": "duplicate_undirected_edge"}
+        seen_pairs.add(pair)
         E.append((s,t))
     if len(E) < 1:
         return False, {"reason": "no edges"}
