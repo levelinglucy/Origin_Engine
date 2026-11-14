@@ -1,5 +1,10 @@
 # Origin Engine changelog
 
+## Unreleased — validate direct Python novelty targets (2026-11-14)
+
+- Reject nonfinite, negative, nonnumeric, Boolean and overflow-size `d_min` values when constructing `OriginEngine` directly, before PRNG or phase state is created. The CLI already rejects nonfinite/negative flags, but direct Python callers could previously poison the novelty history with a `None` emission.
+- Preserve accepted numeric thresholds, default seeded output and the grammar/export formats. Test-first red and exact-head validation belong in [draft PR #25](https://github.com/levelinglucy/Origin_Engine/pull/25); no public release or device validation is claimed.
+
 ## Unreleased — truthful simple-graph diagnostics (2026-11-14)
 
 - The graph scorecard now refuses parallel undirected pairs, including reversed repeats, rather than crediting malformed five-vertex graph records as valid simple graphs.
