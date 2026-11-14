@@ -494,6 +494,16 @@ def _validated_conditioned_prompt_bytes(prompt: str) -> bytes:
 
 class OriginEngine:
     def __init__(self, kernel: Kernel|None=None, d_min: float=0.35, seed: int|None=None):
+        # Match the CLI contract before allocating state. NaN skips the Ψ
+        # candidate loop and can append a None payload; reject it up front.
+        # Large integers can overflow math.isfinite's float conversion.
+        try:
+            valid_target = (type(d_min) in (int, float) and d_min >= 0
+                            and math.isfinite(d_min))
+        except OverflowError:
+            valid_target = False
+        if not valid_target:
+            raise ValueError("d_min must be a finite non-negative number")
         self.kernel = kernel or Kernel()
         # Seed is opt-in: None preserves the legacy SystemRandom/os.urandom path.
         self._seed_rng = random.Random(seed) if seed is not None else None
