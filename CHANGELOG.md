@@ -1,5 +1,10 @@
 # Origin Engine changelog
 
+## Unreleased — GraphML direction fidelity (2026-11-15)
+
+- Refuse directed, missing-default or invalid-direction GraphML evidence rather than silently comparing it as undirected and awarding full export-consistency credit.
+- Preserve generated exports, explicit undirected edge overrides (`false`/`0`), JSON behavior, seeded output and the historical source. Four synthetic tests cover rejection, actual writer round trips and mixed-file denominators. Local Python 3.12.14: 61/61 tests; no hosted, merged, release or device claim in this entry.
+
 ## Unreleased — direct Python cycle-count preflight (2026-11-15)
 
 - Reject an explicitly zero, negative, non-integer or Boolean `run_prompts(..., cycles=...)` value before any engine state mutation. Previously `cycles=0` and negative values silently ran one cycle despite CLI rejection.
