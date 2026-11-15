@@ -1,5 +1,10 @@
 # Origin Engine changelog
 
+## Unreleased — direct Python cycle-count preflight (2026-11-15)
+
+- Reject an explicitly zero, negative, non-integer or Boolean `run_prompts(..., cycles=...)` value before any engine state mutation. Previously `cycles=0` and negative values silently ran one cycle despite CLI rejection.
+- Preserve valid positive counts, implicit `cycles=None` legacy behaviour, seeded generation and graph formats. Draft [PR #26](https://github.com/levelinglucy/Origin_Engine/pull/26) owns regression tests and exact-revision verification; no merge, release or device validation is claimed here.
+
 ## Unreleased — validate direct Python novelty targets (2026-11-14)
 
 - Reject nonfinite, negative, nonnumeric, Boolean and overflow-size `d_min` values when constructing `OriginEngine` directly, before PRNG or phase state is created. The CLI already rejects nonfinite/negative flags, but direct Python callers could previously poison the novelty history with a `None` emission.

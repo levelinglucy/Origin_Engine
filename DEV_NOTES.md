@@ -2,6 +2,10 @@
 
 ## Development summary
 
+**Current reviewable candidate:** [PR #26](https://github.com/levelinglucy/Origin_Engine/pull/26) corrects the direct Python `run_prompts(..., cycles=...)` API: an explicitly zero or negative count previously generated *one* emission and changed seeded state. A non-integer or Boolean count is now rejected with `ValueError` before any engine cycle. Valid positive explicit counts and the historic `cycles=None` default are unchanged. The CLI already rejected nonpositive `--cycles`.
+
+**Integration:** Draft, unmerged; this proposal must remain separate from the previously merged direct-`d_min` [PR #25](https://github.com/levelinglucy/Origin_Engine/pull/25). **Validation:** test-first regression and a narrow source guard were committed, but no new hosted test result is claimed here. **Release:** no tag, device test or crash-durability claim. **Next:** inspect exact PR-head Python 3.11/3.12 tests, then consider low-risk integration only after reviewing required checks.
+
 **Recent correctness repair:** [PR #25](https://github.com/levelinglucy/Origin_Engine/pull/25) guards the direct Python API's novelty target. `OriginEngine(d_min=NaN)` could skip all Ψ candidates, append `None` to history and make later calls fail. The constructor now refuses invalid targets before allocating engine state, without changing valid seeded streams, CLI flags, graph formats or the historical source.
 
 **Integration:** PR #25 is the canonical change record; check its current merge status before claiming integration. [PR #24](https://github.com/levelinglucy/Origin_Engine/pull/24) was merged into main at `b45ecd5b`; its simple-undirected edge validation is independent. [PR #23](https://github.com/levelinglucy/Origin_Engine/pull/23) remains an unmerged research draft without generator changes.
@@ -13,6 +17,14 @@
 **Limits:** Direct construction argument validation is not a global state transaction. Later mutation of `engine.d_min`, callback failures and filesystem crashes remain outside this fix. Scorecards are structural and experimental proxies, not scientific guarantees.
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
+
+## Decision 2026-11-15: validate explicit direct API cycle counts
+
+**Confirmed source defect:** The CLI rejects zero/negative `--cycles`, but `run_prompts` computed `N` then called `range(max(1, N))`. A direct Python call requesting `cycles=0` or a negative integer therefore generated an unwanted emission and advanced the engine's Iota, PRNG and history. `cycles=True` also generated one emission. This is a source-level reproducible contract mismatch, not an observed external data-loss incident.
+
+**Narrow repair:** If `cycles is not None`, require an exact built-in positive integer and raise `ValueError` before prompt-pack preflight or mutation. Leave implicit `cycles=None` historical behaviour alone, including its empty-pack fallback. Valid explicit counts, generation, graph format, seeded random stream and the historical monolith are untouched. The new synthetic regression tests invalid counts for state preservation and valid conditioned/unconditioned seeded replay.
+
+**Trade-off / verification gate:** Direct callers using an explicit nonpositive or Boolean count for a legacy one-cycle fallback will now get a diagnostic error. A broader type/pack redesign is out of scope. PR #26 owns any exact-commit test results, review and merge state; do not infer hosted CI or a release from these notes.
 
 ## Decision 2026-11-14: preflight direct Python novelty thresholds
 

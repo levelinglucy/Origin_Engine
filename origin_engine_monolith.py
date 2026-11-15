@@ -567,6 +567,11 @@ class TestResult:
 
 def run_prompts(engine: OriginEngine, prompts: Iterable[Dict], cycles: int|None=None,
                 *, condition_prompts: bool=False) -> List[Dict]:
+    # The direct API must not interpret an explicitly zero/negative count as
+    # one run (or accept bool as an integer) after the CLI already refuses it.
+    # Check before mutating engine state; None keeps legacy implicit behaviour.
+    if cycles is not None and (type(cycles) is not int or cycles < 1):
+        raise ValueError("cycles must be a positive integer")
     # Validate the full opt-in pack before the first engine cycle; invalid
     # inputs cannot create a partially conditioned experimental run.
     prompt_texts = None
