@@ -728,6 +728,10 @@ def _parse_graphml(path: str) -> dict:
     g = root.find("g:graph", ns)
     if g is None:
         raise ValueError("No <graph> element found")
+    # The sidecar and exporter describe undirected graphs. Do not silently
+    # erase direction metadata and certify a different disk graph as equal.
+    if g.get("edgedefault") != "undirected":
+        raise ValueError("GraphML export must declare undirected edgedefault")
     nodes = []
     idmap = {}
     for n in g.findall("g:node", ns):
@@ -743,6 +747,10 @@ def _parse_graphml(path: str) -> dict:
         idmap[nid] = idx
     edges = []
     for e in g.findall("g:edge", ns):
+        # GraphML uses XML Schema booleans: false and 0 are equivalent.
+        # An absent override inherits the checked undirected graph default.
+        if e.get("directed") not in (None, "false", "0"):
+            raise ValueError("GraphML export edges must remain undirected")
         s = e.get("source"); t = e.get("target")
         if s not in idmap or t not in idmap:
             raise ValueError(f"Edge references unknown node: {s}->{t}")

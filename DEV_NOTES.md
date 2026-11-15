@@ -18,6 +18,14 @@
 
 [Overview](./README.md) · [Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md)
 
+## Decision 2026-11-15: preserve GraphML direction evidence
+
+**Confirmed defect:** The GraphML readback helper ignored both graph `edgedefault` and per-edge `directed` attributes. A synthetic export changed from undirected to directed still earned a perfect Graph-Dump-Consistency score against the original undirected sidecar. Before the fix, the new four-test regression had eight failing assertions/subcases, including a mixed valid/altered pair incorrectly counted as two passes.
+
+**Choice:** Require the export contract's explicit `edgedefault="undirected"` and reject directed or invalid edge overrides. Keep absent overrides and explicit `false`/`0` undirected booleans. The [GraphML primer](https://graphml.graphdrawing.org/primer/graphml-primer.html#s2.3) explains graph defaults and edge overrides; the [schema](https://graphml.graphdrawing.org/specification/element_edge.xsd.htm) declares the latter as XML Schema booleans. Do not erase contradictory direction evidence before comparison.
+
+**Scope and trade-offs:** This is a reader for this engine's own exports, not a complete GraphML schema validator or general mixed-graph importer. A directed-default external document is refused even if all its edges explicitly override to undirected. Generator, seed stream, graph writer, JSON readback and historical monolith remain unchanged. Tests use synthetic temporary files, including actual exporter round trips, explicit undirected controls and mixed-file scoring. Local Python 3.12.14 passed all 61 tests; hosted results belong in the draft PR. No integration, release, iPhone or crash-durability claim.
+
 ## Decision 2026-11-15: validate explicit direct API cycle counts
 
 **Confirmed source defect:** The CLI rejects zero/negative `--cycles`, but `run_prompts` computed `N` then called `range(max(1, N))`. A direct Python call requesting `cycles=0` or a negative integer therefore generated an unwanted emission and advanced the engine's Iota, PRNG and history. `cycles=True` also generated one emission. This is a source-level reproducible contract mismatch, not an observed external data-loss incident.
