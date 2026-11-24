@@ -52,6 +52,8 @@ class GraphMLTopologyTests(unittest.TestCase):
         elif kind == "port":
             ET.SubElement(node, NS + "port", {"name": "p"})
             graph.find(NS + "edge").set("sourceport", "p")
+        elif kind == "dangling_targetport":
+            graph.find(NS + "edge").set("targetport", "p")
         elif kind == "wrong_root":
             root.tag = "wrapper"
         else:
@@ -59,7 +61,7 @@ class GraphMLTopologyTests(unittest.TestCase):
         tree.write(path, encoding="utf-8")
 
     def test_rejects_unrepresented_topology(self):
-        for kind in ("second", "nested", "hyperedge", "port", "wrong_root"):
+        for kind in ("second", "nested", "hyperedge", "port", "dangling_targetport", "wrong_root"):
             with self.subTest(kind=kind), tempfile.TemporaryDirectory() as temp:
                 path = self.export(temp)
                 self.alter(path, kind)
