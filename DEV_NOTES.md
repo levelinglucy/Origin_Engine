@@ -2,13 +2,13 @@
 
 ## Development summary
 
-**Current goal:** [Draft PR #28](https://github.com/levelinglucy/Origin_Engine/pull/28) prevents partial GraphML readback from awarding full export-consistency credit to documents containing topology the engine does not represent.
+**Current goal:** [PR #28](https://github.com/levelinglucy/Origin_Engine/pull/28) prevents partial GraphML readback from awarding full export-consistency credit to documents containing topology the engine does not represent.
 
-**Integration:** Draft; unmerged. The predecessor is main `1592d9cd` (including direction-fidelity PR #27). **Validation:** test-first branch `e86b1795`; local CPython parser-excerpt check reproduced six false equalities and rejected all six after the narrow guard, preserving two valid controls. This is an extracted-function check with synthetic XML, not execution of the full repository or committed regression suite. Exact candidate hosted results pending. **Release:** Unreleased.
+**Integration:** See PR #28 for current merge status; predecessor main `1592d9cd` includes direction-fidelity PR #27. **Validation:** [Hosted red/green evidence](https://github.com/levelinglucy/Origin_Engine/pull/28#issuecomment-7140516720) for the tested PR merge, including the real writer regressions. Final integration checks are tracked in the PR. **Release:** Unreleased.
 
 **Decision (2026-11-24):** Require the GraphML root and exactly one flat graph, reject hyperedges, node ports and edge port attributes. The [GraphML primer](https://graphml.graphdrawing.org/primer/graphml-primer.html#s3) explains these richer graph models. A general importer can intentionally project them away, but this scorecard is checking fidelity of the engine's own flat undirected export, so silent omission is inappropriate. Preserve the writer, JSON reader, explicit undirected overrides, generation, and existing historical source. This is not a complete XML/GraphML schema validator or security boundary; arbitrary extension data and other malformed cases are outside this narrow change.
 
-**Next:** (1) Inspect exact candidate hosted regression and full suite results. (2) Confirm expected flat writer output and mixed-file denominator before deciding integration. No device, release, external graph authenticity or durability claim.
+**Next:** Confirm the final PR head and required checks before integration, then verify merged-main validation. No device, release, external graph authenticity or durability claim.
 
 ### Historical development summaries
 
