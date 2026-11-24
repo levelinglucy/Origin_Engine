@@ -725,9 +725,16 @@ def _parse_graphml(path: str) -> dict:
     tree = ET.parse(path)
     root = tree.getroot()
     ns = {"g": "http://graphml.graphdrawing.org/xmlns"}
-    g = root.find("g:graph", ns)
-    if g is None:
-        raise ValueError("No <graph> element found")
+    # This is an export consistency check, not a lossy GraphML importer.
+    if root.tag != "{" + ns["g"] + "}graphml":
+        raise ValueError("GraphML export must have a graphml root")
+    graphs = root.findall("g:graph", ns)
+    if len(graphs) != 1 or len(root.findall(".//g:graph", ns)) != 1:
+        raise ValueError("GraphML export must contain exactly one flat graph")
+    if (root.find(".//g:hyperedge", ns) is not None
+            or root.find(".//g:port", ns) is not None):
+        raise ValueError("GraphML export cannot represent hyperedges or ports")
+    g = graphs[0]
     # The sidecar and exporter describe undirected graphs. Do not silently
     # erase direction metadata and certify a different disk graph as equal.
     if g.get("edgedefault") != "undirected":
@@ -751,6 +758,8 @@ def _parse_graphml(path: str) -> dict:
         # An absent override inherits the checked undirected graph default.
         if e.get("directed") not in (None, "false", "0"):
             raise ValueError("GraphML export edges must remain undirected")
+        if "sourceport" in e.attrib or "targetport" in e.attrib:
+            raise ValueError("GraphML export cannot represent edge ports")
         s = e.get("source"); t = e.get("target")
         if s not in idmap or t not in idmap:
             raise ValueError(f"Edge references unknown node: {s}->{t}")

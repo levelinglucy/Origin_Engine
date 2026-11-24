@@ -2,6 +2,16 @@
 
 ## Development summary
 
+**Current goal:** [PR #28](https://github.com/levelinglucy/Origin_Engine/pull/28) prevents partial GraphML readback from awarding full export-consistency credit to documents containing topology the engine does not represent.
+
+**Integration:** See PR #28 for current merge status; predecessor main `1592d9cd` includes direction-fidelity PR #27. **Validation:** [Hosted red/green evidence](https://github.com/levelinglucy/Origin_Engine/pull/28#issuecomment-7140516720) for the tested PR merge, including the real writer regressions. Final integration checks are tracked in the PR. **Release:** Unreleased.
+
+**Decision (2026-11-24):** Require the GraphML root and exactly one flat graph, reject hyperedges, node ports and edge port attributes. The [GraphML primer](https://graphml.graphdrawing.org/primer/graphml-primer.html#s3) explains these richer graph models. A general importer can intentionally project them away, but this scorecard is checking fidelity of the engine's own flat undirected export, so silent omission is inappropriate. Preserve the writer, JSON reader, explicit undirected overrides, generation, and existing historical source. This is not a complete XML/GraphML schema validator or security boundary; arbitrary extension data and other malformed cases are outside this narrow change.
+
+**Next:** Confirm the final PR head and required checks before integration, then verify merged-main validation. No device, release, external graph authenticity or durability claim.
+
+### Historical development summaries
+
 **Current reviewable candidate:** [PR #26](https://github.com/levelinglucy/Origin_Engine/pull/26) corrects the direct Python `run_prompts(..., cycles=...)` API: an explicitly zero or negative count previously generated *one* emission and changed seeded state. A non-integer or Boolean count is now rejected with `ValueError` before any engine cycle. Valid positive explicit counts and the historic `cycles=None` default are unchanged. The CLI already rejected nonpositive `--cycles`.
 
 **Integration:** Draft, unmerged; this proposal must remain separate from the previously merged direct-`d_min` [PR #25](https://github.com/levelinglucy/Origin_Engine/pull/25). **Validation:** test-first regression and a narrow source guard were committed, but no new hosted test result is claimed here. **Release:** no tag, device test or crash-durability claim. **Next:** inspect exact PR-head Python 3.11/3.12 tests, then consider low-risk integration only after reviewing required checks.

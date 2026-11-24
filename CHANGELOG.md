@@ -1,5 +1,9 @@
 # Origin Engine changelog
 
+## Unreleased — GraphML topology fidelity (2026-11-24)
+
+- Reject extra or nested graphs, hyperedges, ports, and a non-GraphML document root rather than silently treating a partial projection as an equal export. Preserve valid flat writer output and the existing direction checks.
+
 ## Unreleased — GraphML direction fidelity (2026-11-15)
 
 - Refuse directed, missing-default or invalid-direction GraphML evidence rather than silently comparing it as undirected and awarding full export-consistency credit.
