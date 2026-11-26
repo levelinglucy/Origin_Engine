@@ -739,6 +739,19 @@ def _parse_graphml(path: str) -> dict:
     # erase direction metadata and certify a different disk graph as equal.
     if g.get("edgedefault") != "undirected":
         raise ValueError("GraphML export must declare undirected edgedefault")
+    # The writer uses a fixed key ID, but an ID alone does not declare
+    # a semantic attribute. Reject a missing or ambiguous declaration
+    # instead of comparing unrelated data as the sidecar's string label.
+    keys = root.findall("g:key", ns)
+    label_keys = [key for key in keys if key.get("id") == "label"]
+    if (len(label_keys) != 1
+            or label_keys[0].get("for") != "node"
+            or label_keys[0].get("attr.name") != "label"
+            or label_keys[0].get("attr.type") != "string"):
+        raise ValueError("GraphML export needs one explicit string node label key")
+    if any(key is not label_keys[0] and key.get("attr.name") == "label"
+           and key.get("for", "all") in ("node", "all") for key in keys):
+        raise ValueError("GraphML export has ambiguous node label declarations")
     nodes = []
     idmap = {}
     for n in g.findall("g:node", ns):
@@ -746,10 +759,11 @@ def _parse_graphml(path: str) -> dict:
         if nid is None or not nid.startswith("n"):
             raise ValueError(f"Bad node id: {nid}")
         idx = int(nid[1:])
-        label = ""
-        d = n.find("g:data[@key='label']", ns)
-        if d is not None and d.text is not None:
-            label = d.text
+        values = n.findall("g:data[@key='label']", ns)
+        if len(values) != 1 or len(values[0]) != 0:
+            raise ValueError("GraphML node needs exactly one scalar label value")
+        # An explicitly empty element is a valid empty string, not missing data.
+        label = values[0].text if values[0].text is not None else ""
         nodes.append({"id": idx, "label": label})
         idmap[nid] = idx
     edges = []
