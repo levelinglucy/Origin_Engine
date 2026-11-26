@@ -48,6 +48,12 @@ class GraphMLLabelContractTests(unittest.TestCase):
             root.remove(key)
         elif kind == "duplicate_key":
             ET.SubElement(root, NS + "key", dict(key.attrib))
+        elif kind == "alternate_label_key":
+            extra = ET.Element(NS + "key", {
+                "id": "other", "for": "all", "attr.name": "label", "attr.type": "string"
+            })
+            root.insert(1, extra)
+            ET.SubElement(nodes[1], NS + "data", {"key": "other"}).text = "different"
         elif kind == "missing_empty":
             nodes[0].remove(nodes[0].find(NS + "data"))
         elif kind == "duplicate_data":
@@ -60,7 +66,8 @@ class GraphMLLabelContractTests(unittest.TestCase):
 
     def test_refuses_lost_or_ambiguous_label_semantics(self):
         for kind in ("renamed", "wrong_domain", "wrong_type", "missing_key",
-                     "duplicate_key", "missing_empty", "duplicate_data", "nested_data"):
+                     "duplicate_key", "alternate_label_key", "missing_empty",
+                     "duplicate_data", "nested_data"):
             with self.subTest(kind=kind), tempfile.TemporaryDirectory() as temp:
                 path = self.export(temp)
                 self.alter(path, kind)
@@ -72,6 +79,20 @@ class GraphMLLabelContractTests(unittest.TestCase):
     def test_real_writer_preserves_empty_and_unicode_labels(self):
         with tempfile.TemporaryDirectory() as temp:
             path = self.export(temp)
+            self.assertEqual(oe._parse_graphml(path), GRAPH)
+            self.assertEqual(self.report(path).score, 3.0)
+
+    def test_unrelated_node_attribute_does_not_change_label(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = self.export(temp)
+            tree = ET.parse(path)
+            root = tree.getroot()
+            root.insert(1, ET.Element(NS + "key", {
+                "id": "color", "for": "node", "attr.name": "color", "attr.type": "string"
+            }))
+            node = root.find(NS + "graph").find(NS + "node")
+            ET.SubElement(node, NS + "data", {"key": "color"}).text = "purple"
+            tree.write(path, encoding="utf-8")
             self.assertEqual(oe._parse_graphml(path), GRAPH)
             self.assertEqual(self.report(path).score, 3.0)
 

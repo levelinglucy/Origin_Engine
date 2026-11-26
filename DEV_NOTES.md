@@ -2,6 +2,16 @@
 
 ## Development summary
 
+**Current goal:** [PR #29](https://github.com/levelinglucy/Origin_Engine/pull/29) preserves explicit string node-label semantics in GraphML export consistency checks.
+
+**Integration:** Draft candidate; see PR #29 for live status. Predecessor main `02597a21` includes PR #28 topology fidelity. **Validation:** [Test-only hosted red evidence](https://github.com/levelinglucy/Origin_Engine/actions/runs/45721044452): nine failed assertions/subcases in 67 tests on each Python 3.11/3.12; actual writer empty/Unicode roundtrip passed. Candidate validation remains outstanding. **Release:** Unreleased.
+
+**Decision (2026-11-26):** Require exactly one writer-style key declaration (`id=label`, `for=node`, `attr.name=label`, `attr.type=string`), no second applicable label declaration, and one explicit childless label data element per node. Empty elements remain empty strings; absent data is not an empty label. Other named attributes are not compared. The [GraphML primer §2.4](https://graphml.graphdrawing.org/primer/graphml-primer.html#s2.4) distinguishes key identifiers from attribute names. A generic importer could resolve alternate key IDs or defaults, but this is a verifier for our own writer, not a general importer. External equivalent files using other key IDs or implicit defaults are outside the supported contract. Preserve generation, writer, JSON, direction/topology checks and historical source.
+
+**Next:** Inspect exact candidate hosted Python 3.11/3.12 results (including additional ambiguity and unrelated-attribute controls); verify branch and required checks before integration. No schema validation, arbitrary extension fidelity, security, device or durability certification.
+
+### Previous GraphML topology decision
+
 **Current goal:** [PR #28](https://github.com/levelinglucy/Origin_Engine/pull/28) prevents partial GraphML readback from awarding full export-consistency credit to documents containing topology the engine does not represent.
 
 **Integration:** See PR #28 for current merge status; predecessor main `1592d9cd` includes direction-fidelity PR #27. **Validation:** [Hosted red/green evidence](https://github.com/levelinglucy/Origin_Engine/pull/28#issuecomment-7140516720) for the tested PR merge, including the real writer regressions. Final integration checks are tracked in the PR. **Release:** Unreleased.

@@ -1,5 +1,10 @@
 # Origin Engine changelog
 
+## Unreleased — GraphML node label fidelity (2026-11-26)
+
+- Reject missing, renamed, wrongly typed/scoped or ambiguous writer label declarations, and missing, repeated or nested scalar label data, instead of awarding full export-consistency credit. Explicit empty and Unicode labels remain valid.
+- Keep generation and writer unchanged; external alternate key IDs and implicit defaults are outside the narrow writer contract. [PR #29](https://github.com/levelinglucy/Origin_Engine/pull/29) tracks validation.
+
 ## Unreleased — GraphML topology fidelity (2026-11-24)
 
 - Reject extra or nested graphs, hyperedges, ports, and a non-GraphML document root rather than silently treating a partial projection as an equal export. Preserve valid flat writer output and the existing direction checks.
