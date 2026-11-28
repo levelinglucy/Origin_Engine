@@ -1,5 +1,12 @@
 # Origin Engine — developer notes
 
+## Dependency-proxy threshold guard (2026-11-28)
+
+**Goal:** [Draft PR #31](https://github.com/levelinglucy/Origin_Engine/pull/31) makes the direct dependency-proxy API reject arbitrarily large positive and negative integer targets with its existing ValueError instead of a float-conversion OverflowError. **Integration:** review candidate only. **Validation:** [test-only red run](https://github.com/levelinglucy/Origin_Engine/actions/runs/46125519165) reproduced both error subcases on each CPython 3.11/3.12; 73 tests discovered per version, remaining tests passed. Candidate validation belongs to the PR. **Release:** Unreleased.
+
+**Decision:** Check the existing inclusive [0,1] range before converting via math.isfinite. Out-of-range integers, infinities and NaN fail; supported int/float values, default epsilon, score formula, seeded generation and export formats are unchanged. No general metric-validity or device claim. **Next:** Verify final candidate matrix and required checks, then consider integration under existing repository policy.
+
+
 ## Development summary
 
 **Current goal:** [PR #29](https://github.com/levelinglucy/Origin_Engine/pull/29) preserves explicit string node-label semantics in GraphML export consistency checks.

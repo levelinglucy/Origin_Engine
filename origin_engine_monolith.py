@@ -630,8 +630,9 @@ def test_dependency_bound(outputs: List[Dict], epsilon_max=DEFAULTS["epsilon_max
     Preserve the historical 0.05 proxy allowance for the default ε=0.02,
     while letting callers change the bound rather than silently ignoring it.
     """
+    # Reject out-of-range integers before math.isfinite converts to float.
     if (type(epsilon_max) not in (int, float) or
-            not math.isfinite(epsilon_max) or not 0.0 <= epsilon_max <= 1.0):
+            not 0.0 <= epsilon_max <= 1.0 or not math.isfinite(epsilon_max)):
         raise ValueError("epsilon_max must be a finite number from 0 to 1")
     proxy_limit = 2.5 * epsilon_max
     def overlap(a,b,n=3):

@@ -1,5 +1,9 @@
 # Origin Engine changelog
 
+## Unreleased — dependency-proxy threshold validation (2026-11-28)
+
+- Reject overflow-sized integer epsilon targets through the existing ValueError contract by checking the allowed interval before float conversion. Valid thresholds, default scores and generation are unchanged. See [PR #31](https://github.com/levelinglucy/Origin_Engine/pull/31) for validation.
+
 ## Unreleased — GraphML node label fidelity (2026-11-26)
 
 - Reject missing, renamed, wrongly typed/scoped or ambiguous writer label declarations, and missing, repeated or nested scalar label data, instead of awarding full export-consistency credit. Explicit empty and Unicode labels remain valid.
